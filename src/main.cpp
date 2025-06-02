@@ -147,6 +147,8 @@ int main()
         glfwGetWindowSize(window, &width, &height);
 
 #ifdef __APPLE__
+        // Nothing
+#else
         glViewport(0, 0, width, height);
 #endif
 
