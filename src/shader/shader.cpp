@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 
+
 bool Shader::compile()
 {
     glCompileShader(m_nGLId);

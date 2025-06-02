@@ -1,4 +1,6 @@
+
 #include "shader/program.hpp"
+#include "utils.hpp"
 
 //--------------------
 
@@ -6,7 +8,17 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <glm/glm.hpp>
 #include <iostream>
+#include <random>
+#include <vector>
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "object/sphere.hpp"
+#include "trackball/TrackBall.hpp"
+#include "utils.hpp"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
@@ -88,22 +100,86 @@ int main()
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
 
+    Sphere sphere(.1f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
+
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glm::mat4 ProjMatrix;
+    glm::mat4 MVMatrix;
+    glm::mat4 NormalMatrix;
+    glm::mat4 MVP;
+
+    int width;
+    int height;
+
+    TrackballCamera camera(10.f, 45.f, 0.f); // Initialize the camera with a distance of 5, angleX of 45 degrees, and angleY of 0 degrees
+
+    glm::vec3 position(0.f, 0.f, 0.f); // Initial position of the sphere
+
+    const int nbrIterations = 1000; // Number of iterations for the main loop
+
+    std::vector<glm::vec3>                randomPositions;
+    std::random_device                    rd;
+    std::mt19937                          gen(rd());
+    std::uniform_real_distribution<float> dist(-10.f, 10.f);
+
+    for (int i = 0; i < nbrIterations; ++i)
+    {
+        randomPositions.push_back(glm::vec3(dist(gen), dist(gen), dist(gen))); // Generate random positions for the sphere
+    }
+
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClearColor(1.f, 0.5f, 0.5f, 1.f);
+        glClearColor(1.f, 0.5f, 0.5f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glfwGetWindowSize(window, &width, &height);
+
+        glViewport(0, 0, width, height);
+
+        button_action(window, camera); // Handle camera movement based on key presses
+
+        for (int i = 0; i < nbrIterations; ++i)
+        {
+            draw_ball(camera, sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
+        }
+
+        draw_ball(camera, sphere, position, program, vao, window); // Draw the sphere
 
         ImGui_ImplGlfw_NewFrame();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-        ImGui::Begin("Example");
+        ImGui::Begin("Ball Position");
 
-        if (ImGui::Button("1", ImVec2{50.f, 50.f}))
-            std::cout << "Clicked button 1\n";
-        ImGui::SameLine(); // Draw the next ImGui widget on the same line as the previous one. Otherwise it would be below it
+        ImGui::SliderFloat("PosX", &position.x, -10.f, 10.f);
+        ImGui::SliderFloat("PosY", &position.y, -10.f, 10.f);
+        ImGui::SliderFloat("PosZ", &position.z, -10.f, 10.f);
+
+        ImGui::End();
+
+        ImGui::Begin("Camera");
+
+        if (ImGui::Button("Reset Camera"))
+        {
+            camera.set_to(glm::vec3(0.f, 0.f, 10.f)); // Reset camera to a position looking at the origin
+        }
 
         ImGui::End();
 

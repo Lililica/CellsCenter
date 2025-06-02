@@ -1,6 +1,7 @@
 #include "program.hpp"
 #include <stdexcept>
 
+
 bool Program::link()
 {
     glLinkProgram(m_nGLId);
