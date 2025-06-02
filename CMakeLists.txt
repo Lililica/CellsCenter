@@ -48,3 +48,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE quick_imgui::quick_imgui)
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 endif()
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC SHADERS_PATH="../../src/shader/")
