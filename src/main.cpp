@@ -12,13 +12,9 @@
 #include <iostream>
 #include <random>
 #include <vector>
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include "object/sphere.hpp"
 #include "trackball/TrackBall.hpp"
-#include "utils.hpp"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
@@ -150,7 +146,9 @@ int main()
 
         glfwGetWindowSize(window, &width, &height);
 
+#ifdef __APPLE__
         glViewport(0, 0, width, height);
+#endif
 
         button_action(window, camera); // Handle camera movement based on key presses
 
