@@ -35,8 +35,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_EXTENSIONS OFF)
 
-# Add all the source files
-file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS src/*)
+# Add all the source files (only .cpp and .c)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.c)
 target_sources(${PROJECT_NAME} PRIVATE ${MY_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
@@ -51,3 +51,4 @@ if (WIN32)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC SHADERS_PATH="../../src/shader/")
+target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="../../assets/")

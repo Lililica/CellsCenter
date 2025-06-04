@@ -13,6 +13,7 @@
 #include <random>
 #include <vector>
 #include "glm/ext/vector_float3.hpp"
+#include "imguiRender.hpp"
 #include "object/sphere.hpp"
 #include "trackball/TrackBall.hpp"
 
@@ -81,7 +82,7 @@ int main()
     glfwSetWindowSizeCallback(window, &size_callback);
 
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    Render render;
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -122,21 +123,12 @@ int main()
     int width;
     int height;
 
-    TrackballCamera camera(10.f, 45.f, 0.f); // Initialize the camera with a distance of 5, angleX of 45 degrees, and angleY of 0 degrees
-
     glm::vec3 position(0.f, 0.f, 0.f); // Initial position of the sphere
 
-    const int nbrIterations = 1000; // Number of iterations for the main loop
+    std::vector<glm::vec3> randomPositions;
 
-    std::vector<glm::vec3>                randomPositions;
-    std::random_device                    rd;
-    std::mt19937                          gen(rd());
-    std::uniform_real_distribution<float> dist(-10.f, 10.f);
-
-    for (int i = 0; i < nbrIterations; ++i)
-    {
-        randomPositions.push_back(glm::vec3(dist(gen), dist(gen), dist(gen))); // Generate random positions for the sphere
-    }
+    randomPositions = extract_point_from_obj(ASSETS_PATH + std::string{"cow.obj"});          // Extract random positions from the OBJ file
+    save_text_from_vectObj(randomPositions, ASSETS_PATH + std::string{"result/result.txt"}); // Save the positions to a text file
 
     while (!glfwWindowShouldClose(window))
     {
@@ -148,43 +140,21 @@ int main()
 
 #ifdef __APPLE__
         // Nothing
+
 #else
         glViewport(0, 0, width, height);
 #endif
 
-        button_action(window, camera); // Handle camera movement based on key presses
+        button_action(window, render.getCamera()); // Handle render.getCamera() movement based on key presses
 
-        for (int i = 0; i < nbrIterations; ++i)
+        for (int i = 0; i < randomPositions.size(); ++i)
         {
-            draw_ball(camera, sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
+            draw_ball(render.getCamera(), sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
         }
 
-        draw_ball(camera, sphere, position, program, vao, window); // Draw the sphere
+        draw_ball(render.getCamera(), sphere, position, program, vao, window); // Draw the sphere
 
-        ImGui_ImplGlfw_NewFrame();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui::NewFrame();
-        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-
-        ImGui::Begin("Ball Position");
-
-        ImGui::SliderFloat("PosX", &position.x, -10.f, 10.f);
-        ImGui::SliderFloat("PosY", &position.y, -10.f, 10.f);
-        ImGui::SliderFloat("PosZ", &position.z, -10.f, 10.f);
-
-        ImGui::End();
-
-        ImGui::Begin("Camera");
-
-        if (ImGui::Button("Reset Camera"))
-        {
-            camera.set_to(glm::vec3(0.f, 0.f, 10.f)); // Reset camera to a position looking at the origin
-        }
-
-        ImGui::End();
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        render.render2D(); // Render the ImGui interface
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
