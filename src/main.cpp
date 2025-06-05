@@ -8,10 +8,17 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <algorithm>
+#include <chrono>
 #include <glm/glm.hpp>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <vector>
+#include "Delaunay/include/delaunay.h"
+#include "Delaunay/include/triangle.h"
+#include "Delaunay/include/vector2.h"
+#include "LlyodCentralisation.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "imguiRender.hpp"
 #include "object/sphere.hpp"
@@ -19,6 +26,9 @@
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
+
+#define M 7
+#define N 3
 
 static void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
 {
@@ -40,6 +50,11 @@ static void size_callback(GLFWwindow* /*window*/, int width, int height)
 
 int main()
 {
+    Graphe graphe;
+    graphe.pointList          = {0.f, 0.f, 0.f, 10.f, 10.f, 0.f, 10.f, 10.f, 5.5f, 7.f, 1.f, 3.2f}; // Example points
+    graphe.adjacencySize      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4};                               // Example adjacency sizes
+    graphe.pointAdjacencyList = {5, 1, 2, 3, 0, 1, 2, 4};                                           // Example adjacency list
+
     /* Initialize the library */
     if (!glfwInit())
     {
@@ -97,7 +112,7 @@ int main()
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
 
-    Sphere sphere(.1f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
+    Sphere sphere(.5f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -123,12 +138,87 @@ int main()
     int width;
     int height;
 
-    glm::vec3 position(0.f, 0.f, 0.f); // Initial position of the sphere
+    std::vector<glm::vec3> position(graphe.pointList.size() / 2); // Initial position of the sphere
+    for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+    {
+        position[i].x = graphe.pointList[i * 2];
+        position[i].y = graphe.pointList[i * 2 + 1];
+        position[i].z = 0.f; // Set z to 0 for 2D points
+    }
 
     std::vector<glm::vec3> randomPositions;
 
     randomPositions = extract_point_from_obj(ASSETS_PATH + std::string{"cow.obj"});          // Extract random positions from the OBJ file
     save_text_from_vectObj(randomPositions, ASSETS_PATH + std::string{"result/result.txt"}); // Save the positions to a text file
+
+    int numberPoints = 10;
+
+    std::default_random_engine             eng(std::random_device{}());
+    std::uniform_real_distribution<double> dist_w(0, 800);
+    std::uniform_real_distribution<double> dist_h(0, 600);
+
+    std::cout << "Generating " << numberPoints << " random points" << std::endl;
+
+    std::vector<dt::Vector2<double>> points;
+    for (int i = 0; i < numberPoints; ++i)
+    {
+        points.emplace_back(dist_w(eng), dist_h(eng));
+    }
+
+    dt::Delaunay<double>                    triangulation;
+    const auto                              start = std::chrono::high_resolution_clock::now();
+    const std::vector<dt::Triangle<double>> triangles =
+        triangulation.triangulate(points);
+    const auto                          end  = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> diff = end - start;
+
+    std::cout << triangles.size() << " triangles generated in " << diff.count()
+              << "s\n";
+    std::vector<dt::Edge<double>> edges = triangulation.getEdges();
+
+    std::cout
+        << "--------------------------------------------------------------\n";
+
+    // std::cout << "Edges:\n";
+    // for (auto& e : edges)
+    // {
+    //     std::cout << "Edges : (" << e.v->x << std::setprecision(10000) << "," << e.v->y << ") " << " with ("
+    //               << e.w->x << "," << e.w->y << ") \n";
+    // }
+
+    // Graphe grapheDelaunay;
+    // grapheDelaunay.pointList.reserve(points.size() * 2);
+    // for (const auto& point : points)
+    // {
+    //     grapheDelaunay.pointList.emplace_back(point.x);
+    //     grapheDelaunay.pointList.emplace_back(point.y);
+    // }
+    // grapheDelaunay.adjacencySize.reserve(points.size() * 2);
+    // for (int i = 0; i < points.size() * 2; i += 2)
+    // {
+    //     for (const auto& edge : edges)
+    //     {
+    //         if (edge.v->x == grapheDelaunay.pointList[i] && edge.v->y == grapheDelaunay.pointList[i + 1])
+    //         {
+    //             grapheDelaunay.pointAdjacencyList.push_back(edge.w->x);
+    //             grapheDelaunay.pointAdjacencyList.push_back(edge.w->y);
+    //         }
+    //         else if (edge.w->x == points[i / 2].x && edge.w->y == points[i / 2].y)
+    //         {
+    //             grapheDelaunay.pointAdjacencyList.push_back(edge.v->x);
+    //             grapheDelaunay.pointAdjacencyList.push_back(edge.v->y);
+    //         }
+    //     }
+
+    //     if (i == 0)
+    //     {
+    //         grapheDelaunay.adjacencySize[0] = 0;
+    //         continue;
+    //     }
+    //     grapheDelaunay.adjacencySize[i] = grapheDelaunay.adjacencySize[i - 2] + grapheDelaunay.adjacencySize[i - 1]; // Increment the adjacency size for each point
+    // }
+
+    // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
     while (!glfwWindowShouldClose(window))
     {
@@ -147,12 +237,28 @@ int main()
 
         button_action(window, render.getCamera()); // Handle render.getCamera() movement based on key presses
 
-        for (int i = 0; i < randomPositions.size(); ++i)
+        // for (int i = 0; i < randomPositions.size(); ++i)
+        // {
+        //     draw_ball(render.getCamera(), sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
+        // }
+
+        // draw_ball(render.getCamera(), sphere, position, program, vao, window); // Draw the sphere
+
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         {
-            draw_ball(render.getCamera(), sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
+            graphe.centralisation(); // Centralize the points in the graph
+            for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+            {
+                position[i].x = graphe.pointList[i * 2];
+                position[i].y = graphe.pointList[i * 2 + 1];
+                position[i].z = 0.f; // Set z to 0 for 2D points
+            }
         }
 
-        draw_ball(render.getCamera(), sphere, position, program, vao, window); // Draw the sphere
+        for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+        {
+            draw_ball(render.getCamera(), sphere, position[i], program, vao, window); // Draw the sphere at each point
+        }
 
         render.render2D(); // Render the ImGui interface
 

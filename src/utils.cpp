@@ -119,3 +119,8 @@ void save_text_from_vectObj(const std::vector<glm::vec3>& points, const std::str
 
     file.close();
 }
+
+bool equal_double(double& a, double& b, double epsilon)
+{
+    return (std::abs(a - b) < epsilon);
+}

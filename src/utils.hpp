@@ -12,3 +12,7 @@ void draw_ball(TrackballCamera* trackball, const Sphere& sphere, glm::vec3& posi
 std::vector<glm::vec3> extract_point_from_obj(const std::string& filename);
 
 void save_text_from_vectObj(const std::vector<glm::vec3>& points, const std::string& destination);
+
+// void cow_setup();
+
+bool equal_double(double& a, double& b, double epsilon = 1e-6);

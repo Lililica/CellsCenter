@@ -35,8 +35,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_EXTENSIONS OFF)
 
-# Add all the source files (only .cpp and .c)
-file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.c)
+# Add all the source files (only .cpp, .c, and .cu)
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.c src/*.cu)
 target_sources(${PROJECT_NAME} PRIVATE ${MY_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
@@ -52,3 +52,17 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC SHADERS_PATH="../../src/shader/")
 target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="../../assets/")
+
+# Enable CUDA
+find_package(CUDA)
+
+if(CUDA_FOUND)
+    enable_language(CUDA)
+    message(STATUS "CUDA found: ${CUDA_VERSION}")
+    # Add CUDA source files if you have any, e.g. src/my_kernel.cu
+    # file(GLOB_RECURSE CUDA_SOURCES CONFIGURE_DEPENDS src/*.cu)
+    # target_sources(${PROJECT_NAME} PRIVATE ${CUDA_SOURCES})
+    set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+else()
+    message(WARNING "CUDA not found. CUDA support will be disabled.")
+endif()
