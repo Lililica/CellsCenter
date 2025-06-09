@@ -85,14 +85,22 @@ void Graphe::centralisation()
         return;
     }
 
-    if (pointList.size() != adjacencySize.size())
+    if (pointList.size()*2 != adjacencySize.size())
     {
         std::cerr << "Error: Wrong vector." << std::endl;
         std::cerr << "pointList.size() = " << pointList.size() << ", adjacencySize.size() = " << adjacencySize.size() << std::endl;
         return;
     }
 
-    float* pointListCARRAY          = vectorToCArray<float>(pointList);
+    std::vector<float> pointListTemp(pointList.size()*2);
+    for (int i = 0; i < pointList.size(); i++)
+    {
+        pointListTemp[2*i] = pointList[i].first;
+        pointListTemp[2*i + 1] = pointList[i].second;
+
+    }
+
+    float* pointListCARRAY          = vectorToCArray<float>(pointListTemp);
     int*   adjacencySizeCARRAY      = vectorToCArray<int>(adjacencySize);
     int*   pointAdjacencyListCARRAY = vectorToCArray<int>(pointAdjacencyList);
 
@@ -106,12 +114,12 @@ void Graphe::centralisation()
     /* Setting up variables on device. i.e. GPU */
     float* pointListCUDA;
     int *  adjacencySizeCUDA, *pointAdjacencyListCUDA;
-    cudaMalloc((void**)&pointListCUDA, pointList.size() * sizeof(float));
+    cudaMalloc((void**)&pointListCUDA, pointListTemp.size() * sizeof(float));
     cudaMalloc((void**)&adjacencySizeCUDA, adjacencySize.size() * sizeof(int));
     cudaMalloc((void**)&pointAdjacencyListCUDA, pointAdjacencyList.size() * sizeof(int));
 
     /* Copy data from host to device */
-    cudaMemcpy(pointListCUDA, pointListCARRAY, pointList.size() * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(pointListCUDA, pointListCARRAY, pointListTemp.size() * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(adjacencySizeCUDA, adjacencySizeCARRAY, adjacencySize.size() * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(pointAdjacencyListCUDA, pointAdjacencyListCARRAY, pointAdjacencyList.size() * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -122,21 +130,26 @@ void Graphe::centralisation()
     Hence index of matrix element is
     blockIdx.x* gridSize.y + blockIdx.y
     */
-    int  nbrThreads = pointList.size() / 2;                             // Assuming each block has 2 threads
-    dim3 gridSize((pointList.size() + nbrThreads - 1) / nbrThreads, 1); // Assuming each block has 64 threads
+    int  nbrThreads = pointListTemp.size() / 2;                             // Assuming each block has 2 threads
+    dim3 gridSize((pointListTemp.size() + nbrThreads - 1) / nbrThreads, 1); // Assuming each block has 64 threads
     centralePointLLoyd<<<gridSize, nbrThreads>>>(pointListCUDA, adjacencySizeCUDA, pointAdjacencyListCUDA);
     cudaDeviceSynchronize();
 
     /* Copy result from GPU device to host */
-    float* pointListResult = new float[pointList.size()];
-    cudaMemcpy(pointListResult, pointListCUDA, pointList.size() * sizeof(float), cudaMemcpyDeviceToHost);
+    float* pointListResult = new float[pointListTemp.size()];
+    cudaMemcpy(pointListResult, pointListCUDA, pointListTemp.size() * sizeof(float), cudaMemcpyDeviceToHost);
 
     /* Print result */
     // std::cout << "Resulting pointList after centralisation:\n";
     // print_matrix<float>(pointListResult, pointList.size());
 
     /* Convert result back to vector */
-    pointList = cArrayToVector<float>(pointListResult, pointList.size());
+    pointListTemp = cArrayToVector<float>(pointListResult, pointListTemp.size());
+
+    for (int i = 0; i < pointListTemp.size(); i += 2)
+    {
+        pointList[i / 2] = std::pair<float, float>(pointListTemp[i], pointListTemp[i + 1]);
+    }
 
     /* Cleanup device and host memory */
     cudaFree(pointListCUDA);
@@ -160,9 +173,7 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
 
     for (const Point& point : points)
     {
-        pointList.emplace_back(point.first);
-        pointList.emplace_back(point.second);
-
+        pointList.emplace_back(point);
     }
 
     std::vector<std::pair<int,int>> adjacenciesIdx(adjacencies.size());
@@ -171,20 +182,20 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
     {
         Adjacency adjacency = adjacencies[k];
 
-        for(int i = 0; i < pointList.size(); i += 2)
+        for(int i = 0; i < pointList.size(); i++)
         {
-            Point currentPoint = std::pair<float,float>(pointList[i], pointList[i+1]);
+            Point currentPoint = pointList[i];
 
 
             if(pointEqual(currentPoint, adjacency.first))
             {
-                adjacenciesIdx[k].first = i/2;
+                adjacenciesIdx[k].first = i;
             }
         
         
             if(pointEqual(currentPoint, adjacency.second))
             {
-                adjacenciesIdx[k].second = i/2;
+                adjacenciesIdx[k].second = i;
             }
         }
     }
@@ -205,6 +216,7 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
         }
     }
 
+    // std::cout << "Adjacency list size: " << AdjacencyList.size() << std::endl;
     for (int k = 0; k < AdjacencyList.size(); k++)
     {
         std::vector<int> adjacency = AdjacencyList[k];
@@ -225,3 +237,5 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
 
     std::cout << "Initialization complete." << std::endl;
 }
+
+

@@ -32,8 +32,8 @@
 
 static void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
 {
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    // if (key == GLFW_KEY_A || action == GLFW_PRESS)
+    //     glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 static void mouse_button_callback(GLFWwindow* /*window*/, int /*button*/, int /*action*/, int /*mods*/) {}
@@ -48,12 +48,15 @@ static void size_callback(GLFWwindow* /*window*/, int width, int height)
     height = WINDOW_HEIGHT;
 }
 
+using Point = std::pair<float, float>; // Représente un point (x, y)
+using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
+
 int main()
 {
     Graphe graphe;
-    graphe.pointList          = {0.f, 0.f, 0.f, 10.f, 10.f, 0.f, 10.f, 10.f, 5.5f, 7.f, 1.f, 3.2f}; // Example points
-    graphe.adjacencySize      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4};                               // Example adjacency sizes
-    graphe.pointAdjacencyList = {5, 1, 2, 3, 0, 1, 2, 4};                                           // Example adjacency list
+    graphe.pointList;
+    graphe.adjacencySize;                               // Example adjacency sizes
+    graphe.pointAdjacencyList;                                           // Example adjacency list
 
     /* Initialize the library */
     if (!glfwInit())
@@ -112,8 +115,8 @@ int main()
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
 
-    Sphere sphere(.1f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
-
+    Sphere sphere(.4f, 10, 10);
+  
     GLuint vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -130,10 +133,25 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    glm::mat4 ProjMatrix;
-    glm::mat4 MVMatrix;
-    glm::mat4 NormalMatrix;
-    glm::mat4 MVP;
+    Sphere sphereCENTRE(.2f, 10, 10); 
+
+    GLuint vaoCENTRE;
+    glGenVertexArrays(1, &vaoCENTRE);
+    glBindVertexArray(vaoCENTRE);
+    GLuint vboCENTRE;
+    glGenBuffers(1, &vboCENTRE);
+    glBindBuffer(GL_ARRAY_BUFFER, vboCENTRE);
+    glBufferData(GL_ARRAY_BUFFER, sphereCENTRE.getVertexCount() * sizeof(ShapeVertex), sphereCENTRE.getDataPointer(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
 
     int width;
     int height;
@@ -145,7 +163,7 @@ int main()
     randomPositions = extract_point_from_obj(ASSETS_PATH + std::string{"cow.obj"});          // Extract random positions from the OBJ file
     save_text_from_vectObj(randomPositions, ASSETS_PATH + std::string{"result/result.txt"}); // Save the positions to a text file
 
-    int numberPoints = 1000;
+    int numberPoints = 10;
 
     std::default_random_engine             eng(std::random_device{}());
     std::uniform_real_distribution<double> dist_w(-10, 10);
@@ -158,6 +176,13 @@ int main()
     {
         points.emplace_back(dist_w(eng), dist_h(eng));
     }
+    // points = { // Example points, replace with randomPositions if needed
+    //     dt::Vector2<double>(-10.0, -10.0),
+    //     dt::Vector2<double>(10.0, -10.0),
+    //     dt::Vector2<double>(10.0, 10.0),
+    //     dt::Vector2<double>(-10.0, 10.0),
+    //     dt::Vector2<double>(.0, .0),
+    // };
 
     dt::Delaunay<double>                    triangulation;
     const auto                              start = std::chrono::high_resolution_clock::now();
@@ -180,10 +205,7 @@ int main()
     //               << e.w->x << "," << e.w->y << ") \n";
     // }
 
-    std::cout << "--------------------------------------------------------------\n";
 
-    using Point = std::pair<float, float>; // Représente un point (x, y)
-    using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
 
     std::vector<Point> pointsG;
     std::vector<Adjacency> adjacenciesG;
@@ -203,14 +225,47 @@ int main()
     graphe.init_from_bad_format(pointsG, adjacenciesG); // Initialize the graph with points and adjacencies
 
 
-    std::vector<glm::vec3> position(graphe.pointList.size() / 2); // Initial position of the sphere
+
+
+    std::cout << "--------------------------------------------------------------\n";
+
+    // Calculate the circumcenter of each triangle and add this center for Voronoil cellule points
+
+    std::cout << "Calcul for Voronoil : " << "\n";
+
+    graphe.nearCellulePoints.resize(graphe.pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
+
+    graphe.calculateCenterFromDelaunayTriangles(triangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
+
+   
+
+    std::cout << "--------------------------------------------------------------\n";
+ 
+    // Determine if an original point is a border point
+
+    graphe.findBorderPoints(); // Find the border points in the graph
+
+    std::cout << "--------------------------------------------------------------\n";
+
+
+    // Initialize the position of the sphere at each point in the graph to display them
+
+    std::vector<glm::vec3> position(graphe.pointList.size()); // Initial position of the sphere
+    std::vector<glm::vec3> positionCENTRE(graphe.nearCellulePointsList.size()); // Position of the center sphere
     // std::cout << "Number of points: " << graphe.pointList.size() / 2 << std::endl;
 
-    for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+    for (int i = 0; i < graphe.pointList.size(); ++i)
     {
-        position[i].x = graphe.pointList[i * 2] ;
-        position[i].y = graphe.pointList[i * 2 + 1] ;
+        position[i].x = graphe.pointList[i].first;
+        position[i].y = graphe.pointList[i].second;
         position[i].z = 0.f; // Set z to 0 for 2D points
+    }
+
+    for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+    {  
+        positionCENTRE[i].x = graphe.nearCellulePointsList[i].first;
+        positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
+        positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
     }
 
 
@@ -244,17 +299,22 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         {
             graphe.centralisation(); // Centralize the points in the graph
-            for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+            for (int i = 0; i < graphe.pointList.size(); ++i)
             {
-                position[i].x = graphe.pointList[i * 2];
-                position[i].y = graphe.pointList[i * 2 + 1];
+                position[i].x = graphe.pointList[i].first;
+                position[i].y = graphe.pointList[i].second;
                 position[i].z = 0.f; // Set z to 0 for 2D points
             }
         }
 
-        for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+        for (int i = 0; i < graphe.pointList.size(); ++i)
         {
             draw_ball(render.getCamera(), sphere, position[i], program, vao, window); // Draw the sphere at each point
+        }
+
+        for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+        {
+            draw_ball(render.getCamera(), sphereCENTRE, positionCENTRE[i], program, vaoCENTRE, window); // Draw the center sphere at each circumcenter
         }
 
         render.render2D(); // Render the ImGui interface

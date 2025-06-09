@@ -13,7 +13,7 @@ void Render::render2D()
 
     if (ImGui::Button("Reset Camera"))
     {
-        camera.set_to(glm::vec3(0.f, 0.f, 10.f)); // Reset camera to a position looking at the origin
+        camera.set_to(glm::vec3(20.f, 0.f, 0.f)); // Reset camera to a position looking at the origin
     }
 
     ImGui::End();
