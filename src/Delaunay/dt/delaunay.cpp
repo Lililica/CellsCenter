@@ -68,7 +68,7 @@ Delaunay<T>::triangulate(std::vector<VertexType> &vertices)
 					e2->isBad = true;
 				}
 			}
-		}
+		}	
 
 		polygon.erase(std::remove_if(begin(polygon), end(polygon), [](EdgeType &e){
 			return e.isBad;

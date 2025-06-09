@@ -1,4 +1,5 @@
 ---
+
 Checks: '
   *,
   -modernize-use-ranges,

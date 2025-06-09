@@ -4,6 +4,7 @@
 #include "object/sphere.hpp"
 #include "shader/program.hpp"
 #include "trackball/TrackBall.hpp"
+#include <array>
 
 void button_action(GLFWwindow* window, TrackballCamera* trackball);
 
@@ -16,3 +17,9 @@ void save_text_from_vectObj(const std::vector<glm::vec3>& points, const std::str
 // void cow_setup();
 
 bool equal_double(double& a, double& b, double epsilon = 1e-6);
+
+inline double determinant3x3(std::array<std::array<float,3>,3>& matrix) {
+    return matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
+           matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
+           matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
+}

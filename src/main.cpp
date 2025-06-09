@@ -112,7 +112,7 @@ int main()
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
 
-    Sphere sphere(.5f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
+    Sphere sphere(.1f, 10, 10); // Create a sphere with radius 1, 20 latitude and longitude divisions
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -138,24 +138,18 @@ int main()
     int width;
     int height;
 
-    std::vector<glm::vec3> position(graphe.pointList.size() / 2); // Initial position of the sphere
-    for (int i = 0; i < graphe.pointList.size() / 2; ++i)
-    {
-        position[i].x = graphe.pointList[i * 2];
-        position[i].y = graphe.pointList[i * 2 + 1];
-        position[i].z = 0.f; // Set z to 0 for 2D points
-    }
+
 
     std::vector<glm::vec3> randomPositions;
 
     randomPositions = extract_point_from_obj(ASSETS_PATH + std::string{"cow.obj"});          // Extract random positions from the OBJ file
     save_text_from_vectObj(randomPositions, ASSETS_PATH + std::string{"result/result.txt"}); // Save the positions to a text file
 
-    int numberPoints = 10;
+    int numberPoints = 1000;
 
     std::default_random_engine             eng(std::random_device{}());
-    std::uniform_real_distribution<double> dist_w(0, 800);
-    std::uniform_real_distribution<double> dist_h(0, 600);
+    std::uniform_real_distribution<double> dist_w(-10, 10);
+    std::uniform_real_distribution<double> dist_h(-10, 10);
 
     std::cout << "Generating " << numberPoints << " random points" << std::endl;
 
@@ -182,41 +176,44 @@ int main()
     // std::cout << "Edges:\n";
     // for (auto& e : edges)
     // {
-    //     std::cout << "Edges : (" << e.v->x << std::setprecision(10000) << "," << e.v->y << ") " << " with ("
+    //     std::cout << "Edge : (" << e.v->x  << "," << e.v->y << ") " << " with ("
     //               << e.w->x << "," << e.w->y << ") \n";
     // }
 
-    // Graphe grapheDelaunay;
-    // grapheDelaunay.pointList.reserve(points.size() * 2);
-    // for (const auto& point : points)
-    // {
-    //     grapheDelaunay.pointList.emplace_back(point.x);
-    //     grapheDelaunay.pointList.emplace_back(point.y);
-    // }
-    // grapheDelaunay.adjacencySize.reserve(points.size() * 2);
-    // for (int i = 0; i < points.size() * 2; i += 2)
-    // {
-    //     for (const auto& edge : edges)
-    //     {
-    //         if (edge.v->x == grapheDelaunay.pointList[i] && edge.v->y == grapheDelaunay.pointList[i + 1])
-    //         {
-    //             grapheDelaunay.pointAdjacencyList.push_back(edge.w->x);
-    //             grapheDelaunay.pointAdjacencyList.push_back(edge.w->y);
-    //         }
-    //         else if (edge.w->x == points[i / 2].x && edge.w->y == points[i / 2].y)
-    //         {
-    //             grapheDelaunay.pointAdjacencyList.push_back(edge.v->x);
-    //             grapheDelaunay.pointAdjacencyList.push_back(edge.v->y);
-    //         }
-    //     }
+    std::cout << "--------------------------------------------------------------\n";
 
-    //     if (i == 0)
-    //     {
-    //         grapheDelaunay.adjacencySize[0] = 0;
-    //         continue;
-    //     }
-    //     grapheDelaunay.adjacencySize[i] = grapheDelaunay.adjacencySize[i - 2] + grapheDelaunay.adjacencySize[i - 1]; // Increment the adjacency size for each point
-    // }
+    using Point = std::pair<float, float>; // Représente un point (x, y)
+    using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
+
+    std::vector<Point> pointsG;
+    std::vector<Adjacency> adjacenciesG;
+
+    for(const auto& point : points)
+    {
+        pointsG.emplace_back(point.x, point.y); // Convert dt::Vector2 to Point
+    }
+
+    for (const auto& edge : edges)
+    {
+        // Create adjacency pairs from the edges
+        adjacenciesG.emplace_back(Point(edge.v->x, edge.v->y), Point(edge.w->x, edge.w->y));
+    }
+
+
+    graphe.init_from_bad_format(pointsG, adjacenciesG); // Initialize the graph with points and adjacencies
+
+
+    std::vector<glm::vec3> position(graphe.pointList.size() / 2); // Initial position of the sphere
+    // std::cout << "Number of points: " << graphe.pointList.size() / 2 << std::endl;
+
+    for (int i = 0; i < graphe.pointList.size() / 2; ++i)
+    {
+        position[i].x = graphe.pointList[i * 2] ;
+        position[i].y = graphe.pointList[i * 2 + 1] ;
+        position[i].z = 0.f; // Set z to 0 for 2D points
+    }
+
+
 
     // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
