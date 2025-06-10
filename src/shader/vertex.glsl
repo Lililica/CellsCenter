@@ -1,10 +1,10 @@
-
 #version 330 core
 
 // Attributs de sommet
 layout(location = 0) in vec3 aVertexPosition; // Position du sommet
 layout(location = 1) in vec3 aVertexNormal; // Normale du sommet
 layout(location = 2) in vec2 aVertexTexCoords; // Coordonnées de texture du sommet
+
 
 // Matrices de transformations reçues en uniform
 uniform mat4 uMVPMatrix;
@@ -15,6 +15,7 @@ uniform mat4 uNormalMatrix;
 out vec3 vPosition_vs; // Position du sommet transformé dans l'espace View
 out vec3 vNormal_vs; // Normale du sommet transformé dans l'espace View
 out vec2 vTexCoords; // Coordonnées de texture du sommet
+
 
 void main() {
     // Passage en coordonnées homogènes

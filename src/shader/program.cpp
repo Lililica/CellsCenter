@@ -1,6 +1,6 @@
 #include "program.hpp"
+#include <iostream>
 #include <stdexcept>
-
 
 bool Program::link()
 {
@@ -65,6 +65,7 @@ Program loadProgram(const std::string& vsFile, const std::string& fsFile)
 
     if (!fs.compile())
     {
+        std::cout << "Compilation error for fragment shader (from file " << fsFile << "): " << fs.getInfoLog() << std::endl;
         throw std::runtime_error("Compilation error for fragment shader (from file " + std::string(fsFile) + "): " + fs.getInfoLog());
     }
 
@@ -74,6 +75,7 @@ Program loadProgram(const std::string& vsFile, const std::string& fsFile)
 
     if (!program.link())
     {
+        std::cout << "Link error (for files " << vsFile << " and " << fsFile << "): " << program.getInfoLog() << std::endl;
         throw std::runtime_error("Link error (for files " + vsFile + " and " + fsFile + "): " + program.getInfoLog());
     }
 

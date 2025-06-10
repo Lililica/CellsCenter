@@ -61,9 +61,14 @@ void draw_ball(TrackballCamera* trackball, const Sphere& sphere, glm::vec3& posi
         glGetUniformLocation(program.getGLId(), "uNormalMatrix"),
         1, GL_FALSE, glm::value_ptr(NormalMatrix)
     );
+    glUniform2f(
+        glGetUniformLocation(program.getGLId(), "uScreenSize"),
+        float(width), float(height)
+    );
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, sphere.getVertexCount());
+    glBindVertexArray(0);
 }
 
 std::vector<glm::vec3> extract_point_from_obj(const std::string& filename)
@@ -119,7 +124,3 @@ void save_text_from_vectObj(const std::vector<glm::vec3>& points, const std::str
 
     file.close();
 }
-
-
-
-
