@@ -56,6 +56,9 @@ bool Graphe::hasOtherTriangleForSegment(const std::vector<std::array<Point, 3>>&
             || (pointEqual(triangle[1], p1) && pointEqual(triangle[2], p2))
             || (pointEqual(triangle[1], p2) && pointEqual(triangle[2], p1)))
         {
+            // std::cout << "Found triangle : (" << triangle[0].first << ", " << triangle[0].second << "), ("
+            //           << triangle[1].first << ", " << triangle[1].second << "), ("
+            //           << triangle[2].first << ", " << triangle[2].second << ") which work\n";
             return true;
         }
     }
@@ -95,15 +98,26 @@ void Graphe::findBorderPoints()
         Point b = currentTriangle[1]; // Second point of the triangle
         Point c = currentTriangle[2]; // Third point of the triangle
 
+        // std::cout << "Triangle points: (" << a.first << ", " << a.second << "), ("
+        //           << b.first << ", " << b.second << "), (" << c.first << ", " << c.second << ")\n";
+
         bool isBorder = true;
 
         // Check for each segment if there is another triangle not containing the third point
+
+        // std::cout << "Checking segments for border points...\n";
+        // std::cout << "Segment AB: (" << a.first << ", " << a.second << ") to (" << b.first << ", " << b.second << ")\n";
         if (hasOtherTriangleForSegment(trianglesPoints, a, b, c))
             isBorder = false;
         if (isBorder)
         {
             // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
             // std::cout << "__________________________________________________________\n";
+            celluleBorder.emplace_back(center); // Add the index of the border center to the list
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
             continue;
         }
         isBorder = true;
@@ -113,6 +127,11 @@ void Graphe::findBorderPoints()
         {
             // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
             // std::cout << "__________________________________________________________\n";
+            celluleBorder.emplace_back(center); // Add the index of the border center to the list
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
             continue;
         }
         isBorder = true;
@@ -122,6 +141,10 @@ void Graphe::findBorderPoints()
         {
             // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
             celluleBorder.emplace_back(center); // Add the index of the border center to the list
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
+                idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
         }
 
         // std::cout << "__________________________________________________________\n";

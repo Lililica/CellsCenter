@@ -1,4 +1,5 @@
 
+#include "shader/Shader.hpp"
 #include "shader/program.hpp"
 #include "utils.hpp"
 
@@ -157,7 +158,7 @@ int main()
     std::vector<dt::Vector2<double>> points;
 
 #if 0
-    int numberPoints = 100;
+    int numberPoints = 1000;
 
     std::default_random_engine             eng(std::random_device{}());
     std::uniform_real_distribution<double> dist_w(-10, 10);
@@ -238,9 +239,20 @@ int main()
 
         // draw_ball(render.getCamera(), sphere, position, program, vao, window); // Draw the sphere
 
-        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        glPushMatrix();
+        glLoadIdentity(); // load identity matrix
+
+        glTranslatef(0.0f, 0.0f, 40.0f); // move forward 4 units
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glLineWidth(5.0f);
+
+        glBegin(GL_LINE_LOOP);
+        for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
         {
+            glVertex2f(position[i].x, position[i].y);
         }
+        glEnd();
+        glPopMatrix();
 
         for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
         {

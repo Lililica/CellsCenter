@@ -44,7 +44,7 @@ void draw_ball(TrackballCamera* trackball, const Sphere& sphere, glm::vec3& posi
 
     // std::cout << "Window size: " << width << "x" << height << std::endl;
 
-    ProjMatrix   = glm::perspective(glm::radians(70.f), float(width) / height, 0.1f, 100.f);
+    ProjMatrix   = glm::perspective(glm::radians(70.f), float(width) / height, 0.1f, 10000.f);
     MVMatrix     = glm::translate(glm::mat4(1.), position);
     NormalMatrix = glm::transpose(glm::inverse(MVMatrix));
     MVP          = ProjMatrix * trackball->getViewMatrix() * MVMatrix;
