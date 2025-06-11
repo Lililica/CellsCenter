@@ -53,8 +53,6 @@ using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de
 
 int main()
 {
-    Graphe graphe;
-
     /* Initialize the library */
     if (!glfwInit())
     {
@@ -159,7 +157,7 @@ int main()
     std::vector<dt::Vector2<double>> points;
 
 #if 0
-    int numberPoints = 10000;
+    int numberPoints = 100;
 
     std::default_random_engine             eng(std::random_device{}());
     std::uniform_real_distribution<double> dist_w(-10, 10);
@@ -171,6 +169,7 @@ int main()
     {
         points.emplace_back(dist_w(eng), dist_h(eng));
     }
+
 #else
     points = {
         // Example points, replace with randomPositions if needed
@@ -185,79 +184,31 @@ int main()
     };
 #endif
 
-    dt::Delaunay<double>                    triangulation;
-    const auto                              start = std::chrono::high_resolution_clock::now();
-    const std::vector<dt::Triangle<double>> triangles =
-        triangulation.triangulate(points);
-    const auto                          end  = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double> diff = end - start;
-
-    std::cout << triangles.size() << " triangles generated in " << diff.count()
-              << "s\n";
-    std::vector<dt::Edge<double>> edges = triangulation.getEdges();
-
-    std::cout
-        << "--------------------------------------------------------------\n";
-
-    // std::cout << "Edges:\n";
-    // for (auto& e : edges)
-    // {
-    //     std::cout << "Edge : (" << e.v->x  << "," << e.v->y << ") " << " with ("
-    //               << e.w->x << "," << e.w->y << ") \n";
-    // }
-
-    std::vector<Point>     pointsG;
-    std::vector<Adjacency> adjacenciesG;
-
+    render.getGraph()->pointList.reserve(points.size()); // Reserve space for points in the graph
     for (const auto& point : points)
     {
-        pointsG.emplace_back(point.x, point.y); // Convert dt::Vector2 to Point
+        render.getGraph()->pointList.emplace_back(point.x, point.y); // Convert dt::Vector2 to Point
     }
 
-    for (const auto& edge : edges)
-    {
-        // Create adjacency pairs from the edges
-        adjacenciesG.emplace_back(Point(edge.v->x, edge.v->y), Point(edge.w->x, edge.w->y));
-    }
-
-    graphe.init_from_bad_format(pointsG, adjacenciesG); // Initialize the graph with points and adjacencies
-    graphe.set_triangles(triangles);                    // Set the triangles in the graph
-
-    std::cout << "--------------------------------------------------------------\n";
-
-    // Calculate the circumcenter of each triangle and add this center for Voronoil cellule points
-
-    std::cout << "Calcul for Voronoil : " << "\n";
-
-    graphe.nearCellulePoints.resize(graphe.pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
-
-    graphe.calculateCenterFromDelaunayTriangles(triangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
-
-    std::cout << "--------------------------------------------------------------\n";
-
-    // Determine if an original point is a border point
-
-    graphe.findBorderPoints(); // Find the border points in the graph
-
-    std::cout << "--------------------------------------------------------------\n";
+    render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
     // Initialize the position of the sphere at each point in the graph to display them
 
-    std::vector<glm::vec3> position(graphe.pointList.size());                   // Initial position of the sphere
-    std::vector<glm::vec3> positionCENTRE(graphe.nearCellulePointsList.size()); // Position of the center sphere
-    // std::cout << "Number of points: " << graphe.pointList.size() / 2 << std::endl;
+    std::vector<glm::vec3> position(render.getGraph()->pointList.size());                   // Initial position of the sphere
+    std::vector<glm::vec3> positionCENTRE(render.getGraph()->nearCellulePointsList.size()); // Position of the center sphere
+    // std::cout << "Number of points: " << render.getGraph()->pointList.size() / 2 << std::endl;
 
-    for (int i = 0; i < graphe.pointList.size(); ++i)
+    for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
     {
-        position[i].x = graphe.pointList[i].first;
-        position[i].y = graphe.pointList[i].second;
+        position[i].x = render.getGraph()->pointList[i].first;
+        position[i].y = render.getGraph()->pointList[i].second;
         position[i].z = 0.f; // Set z to 0 for 2D points
     }
 
-    for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+    for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
     {
-        positionCENTRE[i].x = graphe.nearCellulePointsList[i].first;
-        positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
+        positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
+        positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
         positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
     }
 
@@ -289,26 +240,19 @@ int main()
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         {
-            graphe.centralisation(); // Centralize the points in the graph
-            for (int i = 0; i < graphe.pointList.size(); ++i)
-            {
-                position[i].x = graphe.pointList[i].first;
-                position[i].y = graphe.pointList[i].second;
-                position[i].z = 0.f; // Set z to 0 for 2D points
-            }
         }
 
-        for (int i = 0; i < graphe.pointList.size(); ++i)
+        for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
         {
             draw_ball(render.getCamera(), sphere, position[i], program, vao, window); // Draw the sphere at each point
         }
 
-        for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+        for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
         {
             draw_ball(render.getCamera(), sphereCENTRE, positionCENTRE[i], program, vaoCENTRE, window); // Draw the center sphere at each circumcenter
         }
 
-        render.render2D(); // Render the ImGui interface
+        render.render2D(position, positionCENTRE); // Render the ImGui interface
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

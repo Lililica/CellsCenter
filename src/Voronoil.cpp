@@ -8,22 +8,22 @@ void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<dt::Triangle
     {
         std::array<std::array<float, 3>, 3> matForX{{{1.f, static_cast<float>(triangle.a->y), static_cast<float>((std::pow(triangle.a->y, 2) + std::pow(triangle.a->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.b->y), static_cast<float>((std::pow(triangle.b->y, 2) + std::pow(triangle.b->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.c->y), static_cast<float>((std::pow(triangle.c->y, 2) + std::pow(triangle.c->x, 2)) / 2.)}}};
 
-        float x = static_cast<float>(-determinant3x3(matForX));
+        auto x = static_cast<float>(-determinant3x3(matForX));
 
         std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(triangle.a->x), static_cast<float>((std::pow(triangle.a->y, 2) + std::pow(triangle.a->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.b->x), static_cast<float>((std::pow(triangle.b->y, 2) + std::pow(triangle.b->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.c->x), static_cast<float>((std::pow(triangle.c->y, 2) + std::pow(triangle.c->x, 2)) / 2.)}}};
 
-        float y = static_cast<float>(determinant3x3(matForY));
+        auto y = static_cast<float>(determinant3x3(matForY));
 
         std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(triangle.a->x), static_cast<float>(triangle.a->y)}, {1.f, static_cast<float>(triangle.b->x), static_cast<float>(triangle.b->y)}, {1.f, static_cast<float>(triangle.c->x), static_cast<float>(triangle.c->y)}}};
 
-        float w = static_cast<float>(determinant3x3(matForW));
+        auto w = static_cast<float>(determinant3x3(matForW));
 
         Point center(x / w, y / w); // Calculate the center of the circumcircle
-        std::cout << "Center of circumcircle for triangle with points ("
-                  << triangle.a->x << ", " << triangle.a->y << "), ("
-                  << triangle.b->x << ", " << triangle.b->y << "), ("
-                  << triangle.c->x << ", " << triangle.c->y << ") is at ("
-                  << center.first << ", " << center.second << ")\n";
+        // std::cout << "Center of circumcircle for triangle with points ("
+        //           << triangle.a->x << ", " << triangle.a->y << "), ("
+        //           << triangle.b->x << ", " << triangle.b->y << "), ("
+        //           << triangle.c->x << ", " << triangle.c->y << ") is at ("
+        //           << center.first << ", " << center.second << ")\n";
 
         int aIdx = getIndexFromPoint(Point(triangle.a->x, triangle.a->y)); // Get the index of the point in the graph
         int bIdx = getIndexFromPoint(Point(triangle.b->x, triangle.b->y)); // Get the index of the point in the graph
@@ -31,7 +31,7 @@ void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<dt::Triangle
 
         if (aIdx == -1 || bIdx == -1 || cIdx == -1)
         {
-            std::cerr << "Error: Point not found in the graph." << std::endl;
+            std::cerr << "Error: Point not found in the graph." << '\n';
             continue; // Skip this triangle if any point is not found
         }
 
@@ -121,7 +121,7 @@ void Graphe::findBorderPoints()
         if (isBorder)
         {
             // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
-            idxOfBorderCenters.emplace_back(i); // Add the index of the border center to the list
+            celluleBorder.emplace_back(center); // Add the index of the border center to the list
         }
 
         // std::cout << "__________________________________________________________\n";

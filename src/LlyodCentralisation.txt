@@ -1,7 +1,8 @@
+#include "LlyodCentralisation.hpp"
 #include <cuda_runtime.h>
 #include <iostream>
 #include <vector>
-#include "LlyodCentralisation.hpp"
+
 
 __global__ void centralePointLLoyd(float* pointList, int* adjacencySize, int* pointAdjacencyList)
 {
@@ -85,19 +86,18 @@ void Graphe::centralisation()
         return;
     }
 
-    if (pointList.size()*2 != adjacencySize.size())
+    if (pointList.size() * 2 != adjacencySize.size())
     {
         std::cerr << "Error: Wrong vector." << std::endl;
         std::cerr << "pointList.size() = " << pointList.size() << ", adjacencySize.size() = " << adjacencySize.size() << std::endl;
         return;
     }
 
-    std::vector<float> pointListTemp(pointList.size()*2);
+    std::vector<float> pointListTemp(pointList.size() * 2);
     for (int i = 0; i < pointList.size(); i++)
     {
-        pointListTemp[2*i] = pointList[i].first;
-        pointListTemp[2*i + 1] = pointList[i].second;
-
+        pointListTemp[2 * i]     = pointList[i].first;
+        pointListTemp[2 * i + 1] = pointList[i].second;
     }
 
     float* pointListCARRAY          = vectorToCArray<float>(pointListTemp);
@@ -176,24 +176,22 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
         pointList.emplace_back(point);
     }
 
-    std::vector<std::pair<int,int>> adjacenciesIdx(adjacencies.size());
+    std::vector<std::pair<int, int>> adjacenciesIdx(adjacencies.size());
 
     for (int k = 0; k < adjacencies.size(); k++)
     {
         Adjacency adjacency = adjacencies[k];
 
-        for(int i = 0; i < pointList.size(); i++)
+        for (int i = 0; i < pointList.size(); i++)
         {
             Point currentPoint = pointList[i];
 
-
-            if(pointEqual(currentPoint, adjacency.first))
+            if (pointEqual(currentPoint, adjacency.first))
             {
                 adjacenciesIdx[k].first = i;
             }
-        
-        
-            if(pointEqual(currentPoint, adjacency.second))
+
+            if (pointEqual(currentPoint, adjacency.second))
             {
                 adjacenciesIdx[k].second = i;
             }
@@ -202,15 +200,13 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
 
     std::vector<std::vector<int>> AdjacencyList(points.size());
 
-
     for (int k = 0; k < adjacenciesIdx.size(); k++)
     {
-
-        if(std::find(AdjacencyList[adjacenciesIdx[k].first].begin(), AdjacencyList[adjacenciesIdx[k].first].end(), adjacenciesIdx[k].second) == AdjacencyList[adjacenciesIdx[k].first].end())
+        if (std::find(AdjacencyList[adjacenciesIdx[k].first].begin(), AdjacencyList[adjacenciesIdx[k].first].end(), adjacenciesIdx[k].second) == AdjacencyList[adjacenciesIdx[k].first].end())
         {
             AdjacencyList[adjacenciesIdx[k].first].emplace_back(adjacenciesIdx[k].second);
         }
-        if(std::find(AdjacencyList[adjacenciesIdx[k].second].begin(), AdjacencyList[adjacenciesIdx[k].second].end(), adjacenciesIdx[k].first) == AdjacencyList[adjacenciesIdx[k].second].end())
+        if (std::find(AdjacencyList[adjacenciesIdx[k].second].begin(), AdjacencyList[adjacenciesIdx[k].second].end(), adjacenciesIdx[k].first) == AdjacencyList[adjacenciesIdx[k].second].end())
         {
             AdjacencyList[adjacenciesIdx[k].second].emplace_back(adjacenciesIdx[k].first);
         }
@@ -221,14 +217,14 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
     {
         std::vector<int> adjacency = AdjacencyList[k];
 
-        if(k == 0)
+        if (k == 0)
             adjacencySize.emplace_back(0);
 
         adjacencySize.emplace_back(int(adjacency.size()));
 
-        if(k != AdjacencyList.size() - 1)
+        if (k != AdjacencyList.size() - 1)
             adjacencySize.emplace_back(adjacencySize.back() + adjacencySize[adjacencySize.size() - 1]);
-        
+
         for (int idx : adjacency)
         {
             pointAdjacencyList.emplace_back(idx);
@@ -237,5 +233,3 @@ void Graphe::init_from_bad_format(const std::vector<Point>& points, const std::v
 
     std::cout << "Initialization complete." << std::endl;
 }
-
-
