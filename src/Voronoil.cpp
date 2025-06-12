@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include "LlyodCentralisation.hpp"
 #include "utils.hpp"
@@ -67,88 +68,123 @@ bool Graphe::hasOtherTriangleForSegment(const std::vector<std::array<Point, 3>>&
 
 void Graphe::findBorderPoints()
 {
-    for (int i = 0; i < nearCellulePointsList.size(); ++i)
+#if 1
+    for (auto& point : pointList)
     {
-        Point center = nearCellulePointsList[i]; // Get the current center point
+        float limitX = 10.f; // Define the limit for X coordinate
+        float limitY = 10.f; // Define the limit for Y coordinate
 
-        // std::cout << "__________________________________________________________\n";
-        // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ")\n";
-
-        std::array<Point, 3> currentTriangle;
-        int                  IdxTriangle = 0; // Index for triangle points
-
-        for (int j = 0; j < nearCellulePoints.size(); ++j)
+        if (point.first < -limitX || point.first > limitX || point.second < -limitY || point.second > limitY)
         {
-            std::vector<Point> currentCenterList = nearCellulePoints[j];
-
-            if (std::find(currentCenterList.begin(), currentCenterList.end(), center) != currentCenterList.end())
-            {
-                currentTriangle[IdxTriangle] = pointList[j]; // Add the first point of the triangle
-                IdxTriangle++;                               // Increment the index for the next triangle point
-            }
+            // std::cerr << "Point (" << point.first << ", " << point.second << ") is outside the defined limits. Skipping centralisation.\n";
+            point.first  = std::max(point.first, -limitX);         // Clamp the point to the limit
+            point.first  = std::min(point.first, limitX);          // Clamp the point to the limit
+            point.second = std::max(point.second, -limitY);        // Clamp the point to the limit
+            point.second = std::min(point.second, limitY);         // Clamp the point to the limit
+            idxPointBorder.emplace_back(getIndexFromPoint(point)); // Add the index of the border point to the list
+            continue;                                              // Skip points that are outside the defined limits
         }
-
-        if (IdxTriangle < 3) // If we don't have enough points to form a triangle
-        {
-            std::cout << "ERROR : Not enough points to form a triangle for center at (" << center.first << ", " << center.second << ").\n";
-            continue; // Skip this center
-        }
-
-        Point a = currentTriangle[0]; // First point of the triangle
-        Point b = currentTriangle[1]; // Second point of the triangle
-        Point c = currentTriangle[2]; // Third point of the triangle
-
-        // std::cout << "Triangle points: (" << a.first << ", " << a.second << "), ("
-        //           << b.first << ", " << b.second << "), (" << c.first << ", " << c.second << ")\n";
-
-        bool isBorder = true;
-
-        // Check for each segment if there is another triangle not containing the third point
-
-        // std::cout << "Checking segments for border points...\n";
-        // std::cout << "Segment AB: (" << a.first << ", " << a.second << ") to (" << b.first << ", " << b.second << ")\n";
-        if (hasOtherTriangleForSegment(trianglesPoints, a, b, c))
-            isBorder = false;
-        if (isBorder)
-        {
-            // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
-            // std::cout << "__________________________________________________________\n";
-            celluleBorder.emplace_back(center); // Add the index of the border center to the list
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
-            continue;
-        }
-        isBorder = true;
-        if (hasOtherTriangleForSegment(trianglesPoints, a, c, b))
-            isBorder = false;
-        if (isBorder)
-        {
-            // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
-            // std::cout << "__________________________________________________________\n";
-            celluleBorder.emplace_back(center); // Add the index of the border center to the list
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
-            continue;
-        }
-        isBorder = true;
-        if (hasOtherTriangleForSegment(trianglesPoints, b, c, a))
-            isBorder = false;
-        if (isBorder)
-        {
-            // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
-            celluleBorder.emplace_back(center); // Add the index of the border center to the list
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
-                idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
-        }
-
-        // std::cout << "__________________________________________________________\n";
     }
+#else
+    for (auto& point : pointList)
+    {
+        float radius = 10.f; // Define the radius of the circle
+
+        float dist = std::sqrt(point.first * point.first + point.second * point.second);
+        if (dist > radius)
+        {
+            // Clamp the point to the circle boundary
+            float scale = radius / dist;
+            point.first *= scale;
+            point.second *= scale;
+            idxPointBorder.emplace_back(getIndexFromPoint(point)); // Add the index of the border point to the list
+            continue;                                              // Skip points that are outside the defined circle
+        }
+    }
+#endif
+
+    // for (int i = 0; i < nearCellulePointsList.size(); ++i)
+    // {
+    //     Point center = nearCellulePointsList[i]; // Get the current center point
+
+    //     // std::cout << "__________________________________________________________\n";
+    //     // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ")\n";
+
+    //     std::array<Point, 3> currentTriangle;
+    //     int                  IdxTriangle = 0; // Index for triangle points
+
+    //     for (int j = 0; j < nearCellulePoints.size(); ++j)
+    //     {
+    //         std::vector<Point> currentCenterList = nearCellulePoints[j];
+
+    //         if (std::find(currentCenterList.begin(), currentCenterList.end(), center) != currentCenterList.end())
+    //         {
+    //             currentTriangle[IdxTriangle] = pointList[j]; // Add the first point of the triangle
+    //             IdxTriangle++;                               // Increment the index for the next triangle point
+    //         }
+    //     }
+
+    //     if (IdxTriangle < 3) // If we don't have enough points to form a triangle
+    //     {
+    //         std::cout << "ERROR : Not enough points to form a triangle for center at (" << center.first << ", " << center.second << ").\n";
+    //         continue; // Skip this center
+    //     }
+
+    //     Point a = currentTriangle[0]; // First point of the triangle
+    //     Point b = currentTriangle[1]; // Second point of the triangle
+    //     Point c = currentTriangle[2]; // Third point of the triangle
+
+    //     // std::cout << "Triangle points: (" << a.first << ", " << a.second << "), ("
+    //     //           << b.first << ", " << b.second << "), (" << c.first << ", " << c.second << ")\n";
+
+    //     bool isBorder = true;
+
+    //     // Check for each segment if there is another triangle not containing the third point
+
+    //     // std::cout << "Checking segments for border points...\n";
+    //     // std::cout << "Segment AB: (" << a.first << ", " << a.second << ") to (" << b.first << ", " << b.second << ")\n";
+    //     if (hasOtherTriangleForSegment(trianglesPoints, a, b, c))
+    //         isBorder = false;
+    //     if (isBorder)
+    //     {
+    //         // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
+    //         // std::cout << "__________________________________________________________\n";
+    //         celluleBorder.emplace_back(center); // Add the index of the border center to the list
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
+    //         continue;
+    //     }
+    //     isBorder = true;
+    //     if (hasOtherTriangleForSegment(trianglesPoints, a, c, b))
+    //         isBorder = false;
+    //     if (isBorder)
+    //     {
+    //         // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
+    //         // std::cout << "__________________________________________________________\n";
+    //         celluleBorder.emplace_back(center); // Add the index of the border center to the list
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(a)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(a)); // Add the index of point a to the border points if not already present
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
+    //         continue;
+    //     }
+    //     isBorder = true;
+    //     if (hasOtherTriangleForSegment(trianglesPoints, b, c, a))
+    //         isBorder = false;
+    //     if (isBorder)
+    //     {
+    //         // std::cout << "Center of circumcircle at (" << center.first << ", " << center.second << ") is a border point.\n";
+    //         celluleBorder.emplace_back(center); // Add the index of the border center to the list
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(b)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(b)); // Add the index of point b to the border points if not already present
+    //         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), getIndexFromPoint(c)) == idxPointBorder.end())
+    //             idxPointBorder.emplace_back(getIndexFromPoint(c)); // Add the index of point c to the border points if not already present
+    //     }
+
+    //     // std::cout << "__________________________________________________________\n";
+    // }
 }
 
 void Graphe::findBorderPoints_BROKEN_Function()

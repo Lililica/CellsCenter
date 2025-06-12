@@ -1,6 +1,7 @@
 #include "imguiRender.hpp"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <imgui.h>
 
 void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE)
 {
@@ -17,6 +18,48 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     }
 
     if (ImGui::Button("Apply Centralisation"))
+    {
+        itrCentralisation += 1; // Set the counter to 1 for centralisation
+    }
+    if (ImGui::Button("Apply Centralisation x10"))
+    {
+        itrCentralisation += 10; // Set the counter to 10 for centralisation
+    }
+
+    if (ImGui::Button("Apply Centralisation x100"))
+    {
+        itrCentralisation += 100; // Set the counter to 100 for centralisation
+    }
+
+    if (ImGui::Button("Apply Centralisation x1000"))
+    {
+        itrCentralisation += 1000; // Set the counter to 1000 for centralisation
+    }
+
+    ImGui::End();
+
+    ImGui::Begin("Graph Parameters");
+    ImGui::Text("Number of centralisations applied: %d", graphe.nbrCentralisation);
+    ImGui::Text("Number of points in the graph: %d", graphe.pointList.size());
+    ImGui::Text("Number of triangles: %d", graphe.trianglesPoints.size());
+    if (ImGui::Button("Show Triangles"))
+    {
+        drawTriangles = !drawTriangles; // Toggle the drawing of triangles
+    }
+
+    if (ImGui::Button("Show Points"))
+    {
+        drawPoints = !drawPoints; // Toggle the drawing of points
+    }
+
+    if (ImGui::Button("Show Vertex"))
+    {
+        drawVertex = !drawVertex; // Toggle the drawing of vertices
+    }
+
+    ImGui::End();
+
+    if (itrCentralisation > 0)
     {
         graphe.centralisation(); // Centralize the points in the graph
         for (int i = 0; i < graphe.pointList.size(); ++i)
@@ -35,9 +78,9 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
             positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
             positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
         }
+        itrCentralisation--;
+        graphe.nbrCentralisation++; // Increment the number of centralisations applied
     }
-
-    ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

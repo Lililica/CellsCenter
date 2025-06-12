@@ -1,4 +1,6 @@
+#include <complex.h>
 #include <chrono>
+#include <cmath>
 #include <iostream>
 #include "LlyodCentralisation.hpp"
 
@@ -117,7 +119,7 @@ void Graphe::centralisation()
     {
         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), i) != idxPointBorder.end())
         {
-            std::cerr << "Skipping centralisation for border point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
+            // std::cerr << "Skipping centralisation for border point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
             continue; // Skip centralisation for border points
         }
 
@@ -125,7 +127,23 @@ void Graphe::centralisation()
 
         sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
 
-        pointList[i] = computeCentroid(neighbors); // Update the current point to the centroid
+        Point centroid = computeCentroid(neighbors);
+
+        // Clamp the centroid to a maximum distance of 1 unit from the current point
+        float dx       = centroid.first - pointList[i].first;
+        float dy       = centroid.second - pointList[i].second;
+        float distance = std::sqrt(dx * dx + dy * dy); // Calculate the distance to the centroid
+        float factor   = std::min(distance, 0.1f);
+        centroid       = {
+            pointList[i].first + dx * factor,
+            pointList[i].second + dy * factor
+        };
+
+        float t      = 1.f / (1 + (exp(-nbrCentralisation) / step)); // Calculate the interpolation factor based on the number of centralisations
+        pointList[i] = {
+            (1 - t) * pointList[i].first + t * centroid.first,
+            (1 - t) * pointList[i].second + t * centroid.second
+        }; // Update the current point to the centroid
     }
     // }
 
@@ -169,6 +187,7 @@ void Graphe::doDelaunayAndCalculateCenters()
 
     // Determine if an original point is a border point
 
-    if (!hasDetectedBorder)
-        findBorderPoints(); // Find the border points in the graph
+    // idxPointBorder.clear(); // Clear the idxPointBorder vector to prepare for new data
+    // if (!hasDetectedBorder)
+    findBorderPoints(); // Find the border points in the graph
 }
