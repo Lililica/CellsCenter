@@ -10,8 +10,9 @@ struct Graphe {
     using Point     = std::pair<float, float>; // Représente un point (x, y)
     using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
 
-    const float step              = 0.001f; // Variable de temps pour l'animation ou la centralisation
-    int         nbrCentralisation = 0;      // Nombre de centralisations effectuées
+    float step              = 0.001f; // Variable de temps pour l'animation ou la centralisation
+    int   nbrCentralisation = 0;      // Nombre de centralisations effectuées
+    int   nbrPoints         = 500;
 
     std::vector<Point> pointList; // Exemple: [ (x0, y0), (x1, y1), ...]
 

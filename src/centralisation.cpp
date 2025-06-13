@@ -9,14 +9,15 @@ using Point = std::pair<float, float>; // Représente un point (x, y)
 // Fonction utilitaire pour calculer le centre (barycentre simple) des points
 Point computeCenter(const std::vector<Point>& points)
 {
-    float cx = 0.0f, cy = 0.0f;
+    float cx = 0.0f;
+    float cy = 0.0f;
     for (const auto& p : points)
     {
         cx += p.first;
         cy += p.second;
     }
-    cx /= points.size();
-    cy /= points.size();
+    cx /= static_cast<float>(points.size());
+    cy /= static_cast<float>(points.size());
     return {cx, cy};
 }
 
@@ -35,8 +36,9 @@ void sortPointsCCW(std::vector<Point>& points)
 Point computeCentroid(const std::vector<Point>& vertices)
 {
     double area = 0.0;
-    double cx = 0.0, cy = 0.0;
-    int    n = vertices.size();
+    double cx   = 0.0;
+    double cy   = 0.0;
+    size_t n    = vertices.size();
 
     for (int i = 0; i < n; ++i)
     {
@@ -58,7 +60,7 @@ Point computeCentroid(const std::vector<Point>& vertices)
 
 void Graphe::centralisation()
 {
-    std::cout << "Centralisation of points in the graph...\n";
+    // std::cout << "Centralisation of points in the graph...\n";
 
     // if (!hasDetectedBorder)
     // {
@@ -139,7 +141,7 @@ void Graphe::centralisation()
             pointList[i].second + dy * factor
         };
 
-        float t      = 1.f / (1 + (exp(-nbrCentralisation) / step)); // Calculate the interpolation factor based on the number of centralisations
+        float t      = 1.f / (1.f + static_cast<float>(exp(-nbrCentralisation) / step)); // Calculate the interpolation factor based on the number of centralisations
         pointList[i] = {
             (1 - t) * pointList[i].first + t * centroid.first,
             (1 - t) * pointList[i].second + t * centroid.second
@@ -147,12 +149,13 @@ void Graphe::centralisation()
     }
     // }
 
-    std::cout << "Centralisation completed.\n";
+    // std::cout << "Centralisation completed.\n";
 }
 
 void Graphe::doDelaunayAndCalculateCenters()
 {
     std::vector<dt::Vector2<double>> points;
+    points.reserve(pointList.size());
     for (const auto& point : pointList)
     {
         points.emplace_back(point.first, point.second); // Convert Point to dt::Vector2
@@ -165,18 +168,18 @@ void Graphe::doDelaunayAndCalculateCenters()
     const auto                          end  = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> diff = end - start;
 
-    std::cout << triangles.size() << " triangles generated in " << diff.count()
-              << "s\n";
+    // std::cout << triangles.size() << " triangles generated in " << diff.count()
+    //           << "s\n";
     std::vector<dt::Edge<double>> edges = triangulation.getEdges();
 
-    std::cout
-        << "--------------------------------------------------------------\n";
+    // std::cout
+    //     << "--------------------------------------------------------------\n";
 
     set_triangles(triangles); // Set the triangles in the graph
 
     // Calculate the circumcenter of each triangle and add this center for Voronoil cellule points
 
-    std::cout << "Calcul for Voronoil : " << "\n";
+    // std::cout << "Calcul for Voronoil : " << "\n";
 
     nearCellulePoints.clear();                  // Clear the nearCellulePoints vector to prepare for new data
     nearCellulePointsList.clear();              // Clear the nearCellulePointsList vector to prepare for new data

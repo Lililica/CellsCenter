@@ -125,10 +125,10 @@ int main()
 
     Sphere sphereCENTRE(.05f, 4, 2);
 
-    GLuint vaoCENTRE;
+    GLuint vaoCENTRE = 0;
     glGenVertexArrays(1, &vaoCENTRE);
     glBindVertexArray(vaoCENTRE);
-    GLuint vboCENTRE;
+    GLuint vboCENTRE = 0;
     glGenBuffers(1, &vboCENTRE);
     glBindBuffer(GL_ARRAY_BUFFER, vboCENTRE);
     glBufferData(GL_ARRAY_BUFFER, sphereCENTRE.getVertexCount() * sizeof(ShapeVertex), sphereCENTRE.getDataPointer(), GL_STATIC_DRAW);
@@ -229,12 +229,17 @@ int main()
 
         button_action(window, render.getCamera()); // Handle render.getCamera() movement based on key presses
 
-        // for (int i = 0; i < randomPositions.size(); ++i)
-        // {
-        //     draw_ball(render.getCamera(), sphere, randomPositions[i], program, vao, window); // Draw the sphere at random positions
-        // }
-
-        // draw_ball(render.getCamera(), sphere, position, program, vao, window); // Draw the sphere
+        // get the mouse position
+        if (render.mousePoint)
+        {
+            double mouseX, mouseY;
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+            render.getGraph()->pointList[0].first  = (static_cast<float>(mouseX) / width) * 30 - 15.;           // Convert mouse position to OpenGL coordinates
+            render.getGraph()->pointList[0].second = (static_cast<float>(height - mouseY) / height) * 30 - 15.; // Convert mouse position to OpenGL coordinates
+            position[0].x                          = render.getGraph()->pointList[0].first;
+            position[0].y                          = render.getGraph()->pointList[0].second;
+            position[0].z                          = 0.f; // Set z to 0 for 2D points
+        }
 
         if (render.drawTriangles)
         {
@@ -276,6 +281,42 @@ int main()
         }
 
         draw_ball(render.getCamera(), sphereCENTRE, origin, program, vaoCENTRE, window); // Draw the center sphere at each circumcenter
+
+        if (render.nbrPointsChanged)
+        {
+            render.getGraph()->pointList.clear();                               // Clear the previous points
+            render.getGraph()->pointList.reserve(render.getGraph()->nbrPoints); // Reserve space for new points
+            std::default_random_engine             eng(std::random_device{}());
+            std::uniform_real_distribution<double> dist_w(-10, 10);
+            std::uniform_real_distribution<double> dist_h(-10, 10);
+
+            for (int i = 0; i < render.getGraph()->nbrPoints; ++i)
+            {
+                render.getGraph()->pointList.emplace_back(dist_w(eng), dist_h(eng)); // Generate new random points
+            }
+
+            render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
+
+            position.resize(render.getGraph()->pointList.size());                   // Resize position vector to match the number of points
+            positionCENTRE.resize(render.getGraph()->nearCellulePointsList.size()); // Resize positionCENTRE vector to match the number of circumcenters
+
+            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
+            {
+                position[i].x = render.getGraph()->pointList[i].first;
+                position[i].y = render.getGraph()->pointList[i].second;
+                position[i].z = 0.f; // Set z to 0 for 2D points
+            }
+
+            for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
+            {
+                positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
+                positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
+                positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+            }
+
+            render.resetCentralisation();    // Reset the centralisation counter
+            render.nbrPointsChanged = false; // Reset the flag after updating the points
+        }
 
         render.render2D(position, positionCENTRE); // Render the ImGui interface
 

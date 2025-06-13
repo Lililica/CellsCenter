@@ -14,9 +14,11 @@ private:
     int             itrCentralisation = 0;  // Counter for the number of centralisations applied
 
 public:
-    bool drawPoints    = true; // Flag to control whether to draw balls in the render
-    bool drawTriangles = true; // Flag to control whether to draw triangles in the render
-    bool drawVertex    = true; // Flag to control whether to draw vertices in the render
+    bool drawPoints       = true; // Flag to control whether to draw balls in the render
+    bool drawTriangles    = true; // Flag to control whether to draw triangles in the render
+    bool drawVertex       = true; // Flag to control whether to draw vertices in the render
+    bool mousePoint       = false;
+    bool nbrPointsChanged = false;
 
     Render()
         : io(ImGui::GetIO()) {};
@@ -31,6 +33,12 @@ public:
     TrackballCamera* getCamera()
     {
         return &this->camera; // Provide a way to access the camera
+    }
+
+    void resetCentralisation()
+    {
+        itrCentralisation        = 0; // Reset the centralisation counter
+        graphe.nbrCentralisation = 0; // Reset the number of centralisations in the graph
     }
 
     int getItrCentralisation() const

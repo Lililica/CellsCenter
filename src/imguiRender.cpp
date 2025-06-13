@@ -40,8 +40,8 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
 
     ImGui::Begin("Graph Parameters");
     ImGui::Text("Number of centralisations applied: %d", graphe.nbrCentralisation);
-    ImGui::Text("Number of points in the graph: %d", graphe.pointList.size());
-    ImGui::Text("Number of triangles: %d", graphe.trianglesPoints.size());
+    ImGui::Text("Number of points in the graph: %zu", graphe.pointList.size());
+    ImGui::Text("Number of triangles: %zu", graphe.trianglesPoints.size());
     if (ImGui::Button("Show Triangles"))
     {
         drawTriangles = !drawTriangles; // Toggle the drawing of triangles
@@ -57,6 +57,20 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         drawVertex = !drawVertex; // Toggle the drawing of vertices
     }
 
+    ImGui::SliderFloat("Delta for centralisation", &graphe.step, 0.f, 1.f);
+
+    if (ImGui::Button("Point from mouse positiion"))
+    {
+        mousePoint = !mousePoint; // Toggle the drawing of vertices
+    }
+
+    int previousNbrPoints = graphe.nbrPoints; // Store the previous number of points
+    ImGui::SliderInt("Nbr of points", &graphe.nbrPoints, 10, 1000);
+    if (previousNbrPoints != graphe.nbrPoints)
+    {
+        nbrPointsChanged = true; // Set the flag to true if the number of points has changed
+    }
+
     ImGui::End();
 
     if (itrCentralisation > 0)
@@ -69,17 +83,18 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
             position[i].z = 0.f; // Set z to 0 for 2D points
         }
 
-        graphe.doDelaunayAndCalculateCenters();                     // Perform Delaunay triangulation and calculate centers
-        positionCENTRE.clear();                                     // Clear the previous centers
-        positionCENTRE.resize(graphe.nearCellulePointsList.size()); // Resize to the new number of centers
-        for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
-        {
-            positionCENTRE[i].x = graphe.nearCellulePointsList[i].first;
-            positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
-            positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
-        }
         itrCentralisation--;
         graphe.nbrCentralisation++; // Increment the number of centralisations applied
+    }
+
+    graphe.doDelaunayAndCalculateCenters();                     // Perform Delaunay triangulation and calculate centers
+    positionCENTRE.clear();                                     // Clear the previous centers
+    positionCENTRE.resize(graphe.nearCellulePointsList.size()); // Resize to the new number of centers
+    for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+    {
+        positionCENTRE[i].x = graphe.nearCellulePointsList[i].first;
+        positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
+        positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
     }
 
     ImGui::Render();
