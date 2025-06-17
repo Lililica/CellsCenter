@@ -14,11 +14,12 @@ private:
     int             itrCentralisation = 0;  // Counter for the number of centralisations applied
 
 public:
-    bool drawPoints       = true; // Flag to control whether to draw balls in the render
-    bool drawTriangles    = true; // Flag to control whether to draw triangles in the render
-    bool drawVertex       = true; // Flag to control whether to draw vertices in the render
-    bool mousePoint       = false;
-    bool nbrPointsChanged = false;
+    bool drawPoints        = true;  // Flag to control whether to draw balls in the render
+    bool drawTriangles     = true;  // Flag to control whether to draw triangles in the render
+    bool drawVertex        = true;  // Flag to control whether to draw vertices in the render
+    bool drawCelluleBorder = false; // Flag to control whether to draw the border of the cells
+    bool mousePoint        = false;
+    bool nbrPointsChanged  = false;
 
     Render()
         : io(ImGui::GetIO()) {};

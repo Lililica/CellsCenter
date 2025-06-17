@@ -9,6 +9,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <cmath>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <random>
@@ -18,6 +19,10 @@
 #include "glm/ext/vector_float3.hpp"
 #include "imguiRender.hpp"
 #include "object/sphere.hpp"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define WINDOW_WIDTH  1200
 #define WINDOW_HEIGHT 900
@@ -45,6 +50,25 @@ static void size_callback(GLFWwindow* /*window*/, int width, int height)
 
 using Point     = std::pair<float, float>; // Représente un point (x, y)
 using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
+
+void drawCircle(float r, Point& center)
+{
+    glPushMatrix();
+    glLoadIdentity(); // load identity matrix
+
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glLineWidth(2.0f);
+
+    glBegin(GL_LINES);
+
+    float x = center.first;
+    float y = center.second;
+
+    for (float i = 0.0f; i <= 360; i++)
+        glVertex3f(r * cos(M_PI * i / 180.0) + x, r * sin(M_PI * i / 180.0) + y, 0.0f);
+
+    glEnd();
+}
 
 int main()
 {
@@ -211,6 +235,14 @@ int main()
     glm::vec3 origin             = glm::vec3{0., 0., 0.};
     float     radiusEnergiePoint = .5f; // Radius of the energy point sphere
 
+    Point TopLeft(-10.f, 10.f); // Top-left corner of the viewport
+
+    std::vector<Point> examplePoints;
+
+    std::vector<Point> boudaryPoints; // Points on the boundary of the circle
+
+    boudaryPoints.reserve(3); // Reserve space for boundary points
+
     // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
     while (!glfwWindowShouldClose(window))
@@ -273,6 +305,29 @@ int main()
             glEnd();
 
             glPopMatrix();
+        }
+
+        if (render.drawCelluleBorder)
+        {
+            for (const auto& list : render.getGraph()->nearCellulePointsTriees) // Get the list of segments formed by the near cell points
+            {
+                glPushMatrix();
+                glLoadIdentity(); // load identity matrix
+
+                glColor3f(0.0f, 0.0f, 1.0f);
+                glLineWidth(2.0f);
+
+                glBegin(GL_LINES);
+
+                for (const auto& segment : list)
+                {
+                    glVertex3f(segment[0].first, segment[0].second, 0.f); // Draw the first point of the segment
+                    glVertex3f(segment[1].first, segment[1].second, 0.f); // Draw the second point of the segment
+                }
+                glEnd();
+
+                glPopMatrix();
+            }
         }
 
         if (render.drawPoints)

@@ -10,17 +10,23 @@ struct Graphe {
     using Point     = std::pair<float, float>; // Représente un point (x, y)
     using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
 
-    float step                   = 0.001f; // Variable de temps pour l'animation ou la centralisation
-    int   nbrCentralisation      = 0;      // Nombre de centralisations effectuées
+    float step                   = 0.1f; // Variable de temps pour l'animation ou la centralisation
+    int   nbrCentralisation      = 0;    // Nombre de centralisations effectuées
     int   nbrPoints              = 500;
     int   currentIdxEnergiePoint = 0;   // Index of the point for which we want to calculate the CVT energy
     float currentCVTEnergie      = 0.f; // Current CVT energy for the point at currentIdxEnergiePoint
 
+    bool  useWelzl = false;  // Flag to indicate whether to use Welzl's algorithm for circle calculation
+    Point welzlCenterOf0;    // Center of the circle calculated by Welzl's algorithm
+    Point centroidCenterOf0; // Center of the centroid calculated from the points
+
     std::vector<Point> pointList; // Exemple: [ (x0, y0), (x1, y1), ...]
 
-    std::vector<std::vector<Point>> nearCellulePoints;
-    std::vector<Point>              nearCellulePointsList; // List of points that are near the cell
-    std::vector<Point>              celluleBorder;         // Indices of the centers that are considered border points
+    std::vector<std::vector<Point>>                nearCellulePoints;
+    std::vector<std::vector<std::array<Point, 2>>> nearCellulePointsTriees; // List of segments formed by the near cell points
+
+    std::vector<Point> nearCellulePointsList; // List of points that are near the cell
+    std::vector<Point> celluleBorder;         // Indices of the centers that are considered border points
 
     std::vector<int> idxPointBorder;            // Indices of the points that are considered border points
     bool             hasDetectedBorder = false; // Flag to indicate if border points have been detected
@@ -72,4 +78,7 @@ struct Graphe {
     void findBorderPoints_BROKEN_Function();
 
     float calcul_CVT_energie(const int& idxPoint);
+    void  triesNearCellulePoints(); // Sort the near cell points based on their distance to the current energy point
+
+    void updateCenterExample();
 };

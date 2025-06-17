@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include "LlyodCentralisation.hpp"
+#include "utils.hpp"
 
 using Point = std::pair<float, float>; // Représente un point (x, y)
 
@@ -128,23 +129,20 @@ void Graphe::centralisation()
         std::vector<Point> neighbors = nearCellulePoints[i]; // Get the neighbors of the current point
 
         sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
+        Point centroid;
+        if (useWelzl)
+        {
+            std::vector<Point> boundaryPoints;                 // Get the boundary points for the first point
+            centroid = welzl(neighbors, boundaryPoints).first; // Calculate the centroid using Welzl's algorithm
+        }
+        else
+        {
+            centroid = computeCentroid(neighbors);
+        }
 
-        Point centroid = computeCentroid(neighbors);
-
-        // Clamp the centroid to a maximum distance of 1 unit from the current point
-        float dx       = centroid.first - pointList[i].first;
-        float dy       = centroid.second - pointList[i].second;
-        float distance = std::sqrt(dx * dx + dy * dy); // Calculate the distance to the centroid
-        float factor   = std::min(distance, 0.1f);
-        centroid       = {
-            pointList[i].first + dx * factor,
-            pointList[i].second + dy * factor
-        };
-
-        float t      = 1.f / (1.f + static_cast<float>(exp(-nbrCentralisation) / step)); // Calculate the interpolation factor based on the number of centralisations
         pointList[i] = {
-            (1 - t) * pointList[i].first + t * centroid.first,
-            (1 - t) * pointList[i].second + t * centroid.second
+            (1 - step) * pointList[i].first + step * centroid.first,
+            (1 - step) * pointList[i].second + step * centroid.second
         }; // Update the current point to the centroid
     }
     // }
@@ -193,4 +191,18 @@ void Graphe::doDelaunayAndCalculateCenters()
     // idxPointBorder.clear(); // Clear the idxPointBorder vector to prepare for new data
     // if (!hasDetectedBorder)
     findBorderPoints(); // Find the border points in the graph
+
+    triesNearCellulePoints();
+}
+
+void Graphe::updateCenterExample()
+{
+    std::vector<Point> neighbors = nearCellulePoints[0]; // Get the neighbors of the current point
+
+    sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
+                              // Welzl
+    std::vector<Point> boundaryPoints;
+    welzlCenterOf0 = welzl(neighbors, boundaryPoints).first;
+    // Centrois
+    centroidCenterOf0 = computeCentroid(neighbors);
 }

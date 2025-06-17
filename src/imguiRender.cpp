@@ -11,7 +11,7 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     ImGui::NewFrame();
     ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    ImGui::Begin("Camera");
+    ImGui::Begin("Centralisation Control");
 
     if (ImGui::Button("Reset Camera"))
     {
@@ -42,6 +42,21 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         itrCentralisation = 1; // Set the counter to 1000 for centralisation
     }
 
+    ImGui::Text("Current centralisation method: %s", graphe.useWelzl ? "Welzl Circle Minimal" : "Centroid");
+
+    if (ImGui::Button("Switch Centralisation Method"))
+    {
+        graphe.useWelzl          = !graphe.useWelzl; // Toggle the centralisation method
+        graphe.nbrCentralisation = 0;                // Reset the number of centralisations
+        itrCentralisation        = 0;                // Reset the centralisation counter
+    }
+
+    graphe.updateCenterExample();
+    ImGui::Text("Center of Point 0 with Welzl Circle : ");
+    ImGui::Text("(%f, %f)", graphe.welzlCenterOf0.first, graphe.welzlCenterOf0.second);
+    ImGui::Text("Center of Point 0 with Centroid : ");
+    ImGui::Text("(%f, %f)", graphe.centroidCenterOf0.first, graphe.centroidCenterOf0.second);
+
     ImGui::End();
 
     ImGui::Begin("Graph Parameters");
@@ -51,6 +66,11 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     if (ImGui::Button("Show Triangles"))
     {
         drawTriangles = !drawTriangles; // Toggle the drawing of triangles
+    }
+
+    if (ImGui::Button("Show Cells"))
+    {
+        drawCelluleBorder = !drawCelluleBorder; // Toggle the drawing of centers
     }
 
     if (ImGui::Button("Show Points"))
