@@ -23,6 +23,19 @@ public:
     Render()
         : io(ImGui::GetIO()) {};
 
+    int get_itrCentralisation() const
+    {
+        return this->itrCentralisation; // Provide a way to access the current centralisation iteration
+    }
+
+    void decrease_itrCentralisation()
+    {
+        if (itrCentralisation > 0)
+        {
+            itrCentralisation--; // Decrease the centralisation counter
+        }
+    }
+
     void render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE);
 
     Graphe* getGraph()

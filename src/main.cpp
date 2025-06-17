@@ -208,7 +208,8 @@ int main()
         positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
     }
 
-    glm::vec3 origin = glm::vec3{0., 0., 0.};
+    glm::vec3 origin             = glm::vec3{0., 0., 0.};
+    float     radiusEnergiePoint = .5f; // Radius of the energy point sphere
 
     // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
@@ -262,6 +263,15 @@ int main()
             }
 
             glEnd();
+
+            // raw a square around the current energie point
+            glBegin(GL_QUADS);
+            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first - radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second - radiusEnergiePoint, 0.f);
+            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first + radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second - radiusEnergiePoint, 0.f);
+            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first + radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second + radiusEnergiePoint, 0.f);
+            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first - radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second + radiusEnergiePoint, 0.f);
+            glEnd();
+
             glPopMatrix();
         }
 
@@ -319,6 +329,30 @@ int main()
         }
 
         render.render2D(position, positionCENTRE); // Render the ImGui interface
+
+        if (render.get_itrCentralisation() > 0)
+        {
+            render.getGraph()->centralisation(); // Centralize the points in the graph
+            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
+            {
+                position[i].x = render.getGraph()->pointList[i].first;
+                position[i].y = render.getGraph()->pointList[i].second;
+                position[i].z = 0.f; // Set z to 0 for 2D points
+            }
+
+            render.decrease_itrCentralisation();
+            render.getGraph()->nbrCentralisation++; // Increment the number of centralisations applied
+        }
+
+        render.getGraph()->doDelaunayAndCalculateCenters();                     // Perform Delaunay triangulation and calculate centers
+        positionCENTRE.clear();                                                 // Clear the previous centers
+        positionCENTRE.resize(render.getGraph()->nearCellulePointsList.size()); // Resize to the new number of centers
+        for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
+        {
+            positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
+            positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
+            positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

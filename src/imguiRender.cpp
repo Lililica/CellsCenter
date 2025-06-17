@@ -2,6 +2,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <random>
 
 void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE)
 {
@@ -36,6 +37,11 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         itrCentralisation += 1000; // Set the counter to 1000 for centralisation
     }
 
+    if (ImGui::Button("Stop Centralisation"))
+    {
+        itrCentralisation = 1; // Set the counter to 1000 for centralisation
+    }
+
     ImGui::End();
 
     ImGui::Begin("Graph Parameters");
@@ -68,34 +74,40 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     ImGui::SliderInt("Nbr of points", &graphe.nbrPoints, 10, 1000);
     if (previousNbrPoints != graphe.nbrPoints)
     {
-        nbrPointsChanged = true; // Set the flag to true if the number of points has changed
+        nbrPointsChanged              = true; // Set the flag to true if the number of points has changed
+        graphe.currentCVTEnergie      = 0.f;  // Reset the current CVT energy
+        graphe.currentIdxEnergiePoint = 0;    // Reset the index of the point for which we want to calculate the CVT energy
     }
 
     ImGui::End();
 
-    if (itrCentralisation > 0)
+    ImGui::Begin("CVT Energie");
+    if (itrCentralisation == 0)
     {
-        graphe.centralisation(); // Centralize the points in the graph
-        for (int i = 0; i < graphe.pointList.size(); ++i)
+        ImGui::Text("Choose a new point :");
+        if (ImGui::Button("New Point"))
         {
-            position[i].x = graphe.pointList[i].first;
-            position[i].y = graphe.pointList[i].second;
-            position[i].z = 0.f; // Set z to 0 for 2D points
+            // Select a random index from the pointList using C++11 random library
+            static std::random_device             rd;
+            static std::mt19937                   gen(rd());
+            std::uniform_int_distribution<size_t> distrib(0, graphe.pointList.size() - 1);
+            graphe.currentIdxEnergiePoint = static_cast<int>(distrib(gen));
+
+            graphe.currentCVTEnergie = graphe.calcul_CVT_energie(graphe.currentIdxEnergiePoint); // Calculate the CVT energy for the selected point
         }
-
-        itrCentralisation--;
-        graphe.nbrCentralisation++; // Increment the number of centralisations applied
+        ImGui::Text("Current point: (%f, %f)", graphe.pointList[graphe.currentIdxEnergiePoint].first, graphe.pointList[graphe.currentIdxEnergiePoint].second);
+        ImGui::Text("Current CVT Energie: %f", graphe.currentCVTEnergie);
     }
-
-    graphe.doDelaunayAndCalculateCenters();                     // Perform Delaunay triangulation and calculate centers
-    positionCENTRE.clear();                                     // Clear the previous centers
-    positionCENTRE.resize(graphe.nearCellulePointsList.size()); // Resize to the new number of centers
-    for (int i = 0; i < graphe.nearCellulePointsList.size(); ++i)
+    else
     {
-        positionCENTRE[i].x = graphe.nearCellulePointsList[i].first;
-        positionCENTRE[i].y = graphe.nearCellulePointsList[i].second;
-        positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+        ImGui::Text("Waiting the centralisation is finished...");
     }
+
+    if (itrCentralisation == 1)
+    {
+        graphe.currentCVTEnergie = graphe.calcul_CVT_energie(graphe.currentIdxEnergiePoint); // Calculate the CVT energy for the selected point
+    }
+    ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

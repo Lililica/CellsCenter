@@ -10,9 +10,11 @@ struct Graphe {
     using Point     = std::pair<float, float>; // Représente un point (x, y)
     using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
 
-    float step              = 0.001f; // Variable de temps pour l'animation ou la centralisation
-    int   nbrCentralisation = 0;      // Nombre de centralisations effectuées
-    int   nbrPoints         = 500;
+    float step                   = 0.001f; // Variable de temps pour l'animation ou la centralisation
+    int   nbrCentralisation      = 0;      // Nombre de centralisations effectuées
+    int   nbrPoints              = 500;
+    int   currentIdxEnergiePoint = 0;   // Index of the point for which we want to calculate the CVT energy
+    float currentCVTEnergie      = 0.f; // Current CVT energy for the point at currentIdxEnergiePoint
 
     std::vector<Point> pointList; // Exemple: [ (x0, y0), (x1, y1), ...]
 
@@ -68,4 +70,6 @@ struct Graphe {
     void findBorderPoints();
     bool hasOtherTriangleForSegment(const std::vector<std::array<Point, 3>>& trianglesPoints, const Point& p1, const Point& p2, const Point& excluded);
     void findBorderPoints_BROKEN_Function();
+
+    float calcul_CVT_energie(const int& idxPoint);
 };
