@@ -1,7 +1,9 @@
 #include <complex.h>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include "LlyodCentralisation.hpp"
 #include "utils.hpp"
 
@@ -57,6 +59,30 @@ Point computeCentroid(const std::vector<Point>& vertices)
     cy /= (6.0 * area);
 
     return {cx, cy};
+}
+
+Point squareCenter(const std::vector<Point>& points)
+{
+    if (points.size() < 3)
+    {
+        std::cerr << "Not enough points to form a square. Returning the first point as center.\n";
+        return points.empty() ? Point{0, 0} : points[0];
+    }
+
+    // Calculate the center of the square formed by the points
+    float minX = points[0].first, maxX = points[0].first;
+    float minY = points[0].second, maxY = points[0].second;
+
+    for (const auto& p : points)
+    {
+        minX = std::min(p.first, minX);
+        maxX = std::max(p.first, maxX);
+        minY = std::min(p.second, minY);
+        maxY = std::max(p.second, maxY);
+    }
+
+    // Return the center of the square
+    return {(minX + maxX) / 2.0f, (minY + maxY) / 2.0f};
 }
 
 void Graphe::centralisation()
@@ -118,6 +144,8 @@ void Graphe::centralisation()
     // }
     // else
     // {
+    allCircles.clear(); // Clear the list of circles before centralisation
+
     for (int i = 0; i < pointList.size(); ++i)
     {
         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), i) != idxPointBorder.end())
@@ -126,18 +154,72 @@ void Graphe::centralisation()
             continue; // Skip centralisation for border points
         }
 
-        std::vector<Point> neighbors = nearCellulePoints[i]; // Get the neighbors of the current point
+        std::vector<Point> neighbors; // Get the neighbors of the current point
+        Point              centroid;
 
-        sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
-        Point centroid;
         if (useWelzl)
         {
-            std::vector<Point> boundaryPoints;                 // Get the boundary points for the first point
-            centroid = welzl(neighbors, boundaryPoints).first; // Calculate the centroid using Welzl's algorithm
+            neighbors = pointsAdjacents[i];
+            sortPointsCCW(neighbors);
+            std::vector<Point>      boundaryPoints;                            // Get the boundary points for the first point
+            std::pair<Point, float> circle = welzl(neighbors, boundaryPoints); // Calculate the circle using Welzl's algorithm
+            centroid                       = circle.first;                     // Calculate the centroid using Welzl's algorithm
+
+            if (pointEqual(centroid, Point{0, 0}))
+            {
+                std::cout << "Welzl returned (0, 0) for point (" << pointList[i].first << ", " << pointList[i].second
+                          << "). Removing this point of the list.\n";
+
+                // Check if the point is dupliacte in my list
+                int nbrApparition = 0;
+                for (const auto& p : pointList)
+                {
+                    if (pointEqual(p, pointList[i]))
+                    // std::cout << "Skipping centralisation for this duplicate point.\n";
+                    // std::cout << "--------------------------------------------------\n";
+                    {
+                        nbrApparition++;
+                    }
+                    if (nbrApparition > 1)
+                    {
+                        std::cerr << "Point (" << pointList[i].first << ", " << pointList[i].second
+                                  << ") appears multiple times in the point list. Skipping centralisation for this point.\n";
+                        break; // Skip centralisation for this point if it appears multiple times
+                    }
+                }
+
+                // Show neighbors
+                std::cout << "Neighbors for point (" << pointList[i].first << ", " << pointList[i].second << "):\n";
+                for (const auto& neighbor : neighbors)
+                {
+                    std::cout << "Neighbor: (" << neighbor.first << ", " << neighbor.second << ")\n";
+                }
+
+                // Remove the point from the list
+                idxPointBorder.push_back(i); // Add the index of the border point to the list
+                continue;                    // Skip centralisation for this point
+            }
+
+            allCircles.push_back(circle); // Store the circle for later use
+        }
+        else if (useSquare)
+        {
+            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
+            sortPointsCCW(neighbors);       // Sort neighbors in counter-clockwise order around the current point
+
+            centroid = squareCenter(neighbors);
+        }
+        else if (useCentroid)
+        {
+            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
+            sortPointsCCW(neighbors);       // Sort neighbors in counter-clockwise order around the current point
+
+            centroid = computeCentroid(neighbors);
         }
         else
         {
-            centroid = computeCentroid(neighbors);
+            std::cerr << "No valid method selected for centralisation. Skipping point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
+            continue; // Skip if no valid method is selected
         }
 
         pointList[i] = {

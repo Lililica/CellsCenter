@@ -20,6 +20,7 @@ public:
     bool drawCelluleBorder = false; // Flag to control whether to draw the border of the cells
     bool mousePoint        = false;
     bool nbrPointsChanged  = false;
+    bool drawCircles       = false; // Flag to control whether to draw circles in the render
 
     Render()
         : io(ImGui::GetIO()) {};

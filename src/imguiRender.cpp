@@ -42,13 +42,31 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         itrCentralisation = 1; // Set the counter to 1000 for centralisation
     }
 
-    ImGui::Text("Current centralisation method: %s", graphe.useWelzl ? "Welzl Circle Minimal" : "Centroid");
+    ImGui::Text("Current centralisation method: %s", graphe.useWelzl ? "Welzl Circle" : (graphe.useCentroid ? "Centroid" : "Square"));
 
-    if (ImGui::Button("Switch Centralisation Method"))
+    if (ImGui::Button("Switch to Square"))
     {
-        graphe.useWelzl          = !graphe.useWelzl; // Toggle the centralisation method
-        graphe.nbrCentralisation = 0;                // Reset the number of centralisations
-        itrCentralisation        = 0;                // Reset the centralisation counter
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = false; // Toggle the use of centroid calculation
+        graphe.useSquare         = true;  // Toggle the use of
+    }
+    if (ImGui::Button("Switch to Welzl Circle"))
+    {
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = true;  // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = false; // Toggle the use of centroid calculation
+        graphe.useSquare         = false; // Toggle the use of square calculation
+    }
+    if (ImGui::Button("Switch to Centroid"))
+    {
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = true;  // Toggle the use of centroid calculation
+        graphe.useSquare         = false; // Toggle the use of square calculation
     }
 
     graphe.updateCenterExample();
@@ -83,6 +101,11 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         drawVertex = !drawVertex; // Toggle the drawing of vertices
     }
 
+    if (ImGui::Button("Show Circles"))
+    {
+        drawCircles = !drawCircles; // Toggle the drawing of circles
+    }
+
     ImGui::SliderFloat("Delta for centralisation", &graphe.step, 0.f, 1.f);
 
     if (ImGui::Button("Point from mouse positiion"))
@@ -107,11 +130,20 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         ImGui::Text("Choose a new point :");
         if (ImGui::Button("New Point"))
         {
-            // Select a random index from the pointList using C++11 random library
-            static std::random_device             rd;
-            static std::mt19937                   gen(rd());
-            std::uniform_int_distribution<size_t> distrib(0, graphe.pointList.size() - 1);
-            graphe.currentIdxEnergiePoint = static_cast<int>(distrib(gen));
+            while (true)
+            {
+                // Select a random index from the pointList using C++11 random library
+                static std::random_device             rd;
+                static std::mt19937                   gen(rd());
+                std::uniform_int_distribution<size_t> distrib(0, graphe.pointList.size() - 1);
+                graphe.currentIdxEnergiePoint = static_cast<int>(distrib(gen));
+
+                if (std::find(graphe.idxPointBorder.begin(), graphe.idxPointBorder.end(), graphe.currentIdxEnergiePoint) != graphe.idxPointBorder.end())
+                {
+                    continue;
+                }
+                break;
+            }
 
             graphe.currentCVTEnergie = graphe.calcul_CVT_energie(graphe.currentIdxEnergiePoint); // Calculate the CVT energy for the selected point
         }

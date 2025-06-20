@@ -68,7 +68,7 @@ bool Graphe::hasOtherTriangleForSegment(const std::vector<std::array<Point, 3>>&
 
 void Graphe::findBorderPoints()
 {
-#if 1
+#if 0
     for (auto& point : pointList)
     {
         float limitX = 10.f; // Define the limit for X coordinate
@@ -91,14 +91,13 @@ void Graphe::findBorderPoints()
         float radius = 10.f; // Define the radius of the circle
 
         float dist = std::sqrt(point.first * point.first + point.second * point.second);
-        if (dist > radius)
+        if (dist > radius - 0.001f)
         {
             // Clamp the point to the circle boundary
-            float scale = radius / dist;
-            point.first *= scale;
-            point.second *= scale;
-            idxPointBorder.emplace_back(getIndexFromPoint(point)); // Add the index of the border point to the list
-            continue;                                              // Skip points that are outside the defined circle
+            float angle  = std::atan2(point.second, point.first); // Calculate the angle of the point
+            point.first  = std::cos(angle) * radius;              // Scale the point to the circle boundary
+            point.second = std::sin(angle) * radius;              // Scale the point to the circle boundary
+            continue;                                             // Skip points that are outside the defined circle
         }
     }
 #endif

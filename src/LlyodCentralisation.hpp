@@ -10,18 +10,23 @@ struct Graphe {
     using Point     = std::pair<float, float>; // Représente un point (x, y)
     using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
 
-    float step                   = 0.1f; // Variable de temps pour l'animation ou la centralisation
-    int   nbrCentralisation      = 0;    // Nombre de centralisations effectuées
+    float radius = 10.f; // Rayon de la zone d'influence des points
+
+    float step                   = 1.f; // Variable de temps pour l'animation ou la centralisation
+    int   nbrCentralisation      = 0;   // Nombre de centralisations effectuées
     int   nbrPoints              = 500;
     int   currentIdxEnergiePoint = 0;   // Index of the point for which we want to calculate the CVT energy
     float currentCVTEnergie      = 0.f; // Current CVT energy for the point at currentIdxEnergiePoint
 
-    bool  useWelzl = false;  // Flag to indicate whether to use Welzl's algorithm for circle calculation
-    Point welzlCenterOf0;    // Center of the circle calculated by Welzl's algorithm
-    Point centroidCenterOf0; // Center of the centroid calculated from the points
+    bool  useWelzl    = true;  // Flag to indicate whether to use Welzl's algorithm for circle calculation
+    bool  useCentroid = false; // Flag to indicate whether to use the centroid for circle calculation
+    bool  useSquare   = false; // Flag to indicate whether to use the square of the distance for energy calculation
+    Point welzlCenterOf0;      // Center of the circle calculated by Welzl's algorithm
+    Point centroidCenterOf0;   // Center of the centroid calculated from the points
 
     std::vector<Point> pointList; // Exemple: [ (x0, y0), (x1, y1), ...]
 
+    std::vector<std::vector<Point>>                pointsAdjacents; // List of adjacent points for each point in pointList
     std::vector<std::vector<Point>>                nearCellulePoints;
     std::vector<std::vector<std::array<Point, 2>>> nearCellulePointsTriees; // List of segments formed by the near cell points
 
@@ -32,6 +37,8 @@ struct Graphe {
     bool             hasDetectedBorder = false; // Flag to indicate if border points have been detected
 
     std::vector<std::array<Point, 3>> trianglesPoints; // List of triangles formed by the near cell points
+
+    std::vector<std::pair<Point, float>> allCircles;
 
     void centralisation();
 
@@ -63,9 +70,31 @@ struct Graphe {
     void set_triangles(const std::vector<dt::Triangle<double>>& triangles)
     {
         trianglesPoints.clear();
+        pointsAdjacents.clear();
+        pointsAdjacents.resize(pointList.size()); // Resize the adjacency list to match the number of points
         for (const auto& triangle : triangles)
         {
             trianglesPoints.emplace_back(std::array<Point, 3>{Point(triangle.a->x, triangle.a->y), Point(triangle.b->x, triangle.b->y), Point(triangle.c->x, triangle.c->y)});
+            int idxA = getIndexFromPoint(trianglesPoints.back()[0]);
+            int idxB = getIndexFromPoint(trianglesPoints.back()[1]);
+            int idxC = getIndexFromPoint(trianglesPoints.back()[2]);
+            if (idxA == -1 || idxB == -1 || idxC == -1)
+            {
+                std::cerr << "Error: One of the triangle points is not found in the graph." << '\n';
+                continue; // Skip this triangle if any point is not found
+            }
+            if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxA].end())
+                pointsAdjacents[idxA].push_back(trianglesPoints.back()[1]);
+            if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[2]) == pointsAdjacents[idxA].end())
+                pointsAdjacents[idxA].push_back(trianglesPoints.back()[2]);
+            if (std::find(pointsAdjacents[idxB].begin(), pointsAdjacents[idxB].end(), trianglesPoints.back()[0]) == pointsAdjacents[idxB].end())
+                pointsAdjacents[idxB].push_back(trianglesPoints.back()[0]);
+            if (std::find(pointsAdjacents[idxB].begin(), pointsAdjacents[idxB].end(), trianglesPoints.back()[2]) == pointsAdjacents[idxB].end())
+                pointsAdjacents[idxB].push_back(trianglesPoints.back()[2]);
+            if (std::find(pointsAdjacents[idxC].begin(), pointsAdjacents[idxC].end(), trianglesPoints.back()[0]) == pointsAdjacents[idxC].end())
+                pointsAdjacents[idxC].push_back(trianglesPoints.back()[0]);
+            if (std::find(pointsAdjacents[idxC].begin(), pointsAdjacents[idxC].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxC].end())
+                pointsAdjacents[idxC].push_back(trianglesPoints.back()[1]);
         }
     }
 

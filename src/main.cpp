@@ -1,6 +1,7 @@
 
 #include "shader/Shader.hpp"
 #include "shader/program.hpp"
+#include "shader/shader.hpp"
 #include "utils.hpp"
 
 //--------------------
@@ -12,6 +13,7 @@
 #include <cmath>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <numbers>
 #include <random>
 #include <vector>
 #include "Delaunay/include/vector2.h"
@@ -175,34 +177,49 @@ int main()
 
     std::vector<dt::Vector2<double>> points;
 
-#if 1
+#if 0
     int numberPoints = 500;
 
     std::default_random_engine             eng(std::random_device{}());
-    std::uniform_real_distribution<double> dist_w(-10, 10);
-    std::uniform_real_distribution<double> dist_h(-10, 10);
+    std::uniform_real_distribution<double> rayon(0, render.getGraph()->radius - 1.); // Random radius from 0 to the graph's radius
+    std::uniform_real_distribution<double> angle(0, std::numbers::pi * 2);           // 2 * pi
 
     std::cout << "Generating " << numberPoints << " random points" << '\n';
 
     points.reserve(numberPoints);
     for (int i = 0; i < numberPoints; ++i)
     {
-        points.emplace_back(dist_w(eng), dist_h(eng));
+        points.emplace_back(
+            rayon(eng) * std::cos(angle(eng)), // Random x coordinate
+            rayon(eng) * std::sin(angle(eng))  // Random y coordinate
+        );                                     // Generate random points in a circle of radius 10
     }
 
 #else
     points = {
         // Example points, replace with randomPositions if needed
-        dt::Vector2<double>(0, 10),
-        dt::Vector2<double>(-10, 8),
-        dt::Vector2<double>(-5, 6),
-        dt::Vector2<double>(1, 4),
-        dt::Vector2<double>(4, 7),
-        dt::Vector2<double>(10, 10),
-        dt::Vector2<double>(-7, -10),
-        dt::Vector2<double>(5, -10)
+        dt::Vector2<double>(0, 0),
+        dt::Vector2<double>(2, 2),
+        dt::Vector2<double>(2, -2),
+        dt::Vector2<double>(-2, -2),
+        dt::Vector2<double>(-2, 2),
+        dt::Vector2<double>(2, 0),
+        dt::Vector2<double>(0, 2),
+        dt::Vector2<double>(-2, 0),
+        dt::Vector2<double>(0, -2),
     };
 #endif
+
+    // add border points to the graph
+    for (int i = 0; i < 50; ++i)
+    {
+        float angle = static_cast<float>(i) * (2.f * std::numbers::pi / 50.f); // Calculate the angle for each point
+        render.getGraph()->pointList.emplace_back(
+            render.getGraph()->radius * std::cos(angle),                                                        // x coordinate
+            render.getGraph()->radius * std::sin(angle)                                                         // y coordinate
+        );                                                                                                      // Generate points on the boundary of the circle
+        render.getGraph()->idxPointBorder.push_back(static_cast<int>(render.getGraph()->pointList.size() - 1)); // Add the index of the border point to the list
+    }
 
     render.getGraph()->pointList.reserve(points.size()); // Reserve space for points in the graph
     for (const auto& point : points)
@@ -239,10 +256,6 @@ int main()
 
     std::vector<Point> examplePoints;
 
-    std::vector<Point> boudaryPoints; // Points on the boundary of the circle
-
-    boudaryPoints.reserve(3); // Reserve space for boundary points
-
     // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
     while (!glfwWindowShouldClose(window))
@@ -276,57 +289,61 @@ int main()
 
         if (render.drawTriangles)
         {
-            glPushMatrix();
-            glLoadIdentity(); // load identity matrix
-
-            glColor3f(0.0f, 1.0f, 0.0f);
-            glLineWidth(2.0f);
-
-            glBegin(GL_LINES);
-
+            std::vector<Vertex> vertices;                                    // Create a vector to hold the vertices of the triangles
+            glm::vec3           currentColor = BLUE;                         // Color for the triangles
+            vertices.reserve(render.getGraph()->trianglesPoints.size() * 3); // Reserve space
             for (const auto& triangle : render.getGraph()->trianglesPoints)
             {
-                glVertex3f(triangle[0].first, triangle[0].second, 0.f);
-                glVertex3f(triangle[1].first, triangle[1].second, 0.f);
-                glVertex3f(triangle[1].first, triangle[1].second, 0.f);
-                glVertex3f(triangle[2].first, triangle[2].second, 0.f);
-                glVertex3f(triangle[2].first, triangle[2].second, 0.f);
-                glVertex3f(triangle[0].first, triangle[0].second, 0.f);
+                vertices.push_back({glm::vec3{triangle[0].first, triangle[0].second, 0.f}, currentColor, {}}); // Add the first vertex
+                vertices.push_back({glm::vec3{triangle[1].first, triangle[1].second, 0.f}, currentColor, {}}); // Add the second vertex
+                vertices.push_back({glm::vec3{triangle[1].first, triangle[1].second, 0.f}, currentColor, {}}); // Add the second vertex
+                vertices.push_back({glm::vec3{triangle[2].first, triangle[2].second, 0.f}, currentColor, {}}); // Add the third vertex
+                vertices.push_back({glm::vec3{triangle[2].first, triangle[2].second, 0.f}, currentColor, {}}); // Add the third vertex
+                vertices.push_back({glm::vec3{triangle[0].first, triangle[0].second, 0.f}, currentColor, {}}); // Add the first vertex
             }
 
-            glEnd();
-
-            // raw a square around the current energie point
-            glBegin(GL_QUADS);
-            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first - radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second - radiusEnergiePoint, 0.f);
-            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first + radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second - radiusEnergiePoint, 0.f);
-            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first + radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second + radiusEnergiePoint, 0.f);
-            glVertex3f(render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].first - radiusEnergiePoint, render.getGraph()->pointList[render.getGraph()->currentIdxEnergiePoint].second + radiusEnergiePoint, 0.f);
-            glEnd();
-
-            glPopMatrix();
+            GLobject drawTriangles(vertices, GL_LINES, false); // Draw the triangles using the GLobject class
+            drawTriangles.draw();                              // Draw the triangles
         }
 
         if (render.drawCelluleBorder)
         {
             for (const auto& list : render.getGraph()->nearCellulePointsTriees) // Get the list of segments formed by the near cell points
             {
-                glPushMatrix();
-                glLoadIdentity(); // load identity matrix
-
-                glColor3f(0.0f, 0.0f, 1.0f);
-                glLineWidth(2.0f);
-
-                glBegin(GL_LINES);
-
-                for (const auto& segment : list)
+                std::vector<Vertex> vertices;             // Create a vector to hold the vertices of the segments
+                glm::vec3           currentColor = GREEN; // Color for the segments
+                vertices.reserve(list.size() * 2);        // Reserve space for the segments
+                for (const auto& segment : list)          // Iterate through each segment
                 {
-                    glVertex3f(segment[0].first, segment[0].second, 0.f); // Draw the first point of the segment
-                    glVertex3f(segment[1].first, segment[1].second, 0.f); // Draw the second point of the segment
+                    vertices.push_back({glm::vec3{segment[0].first, segment[0].second, 0.f}, currentColor, {}}); // Add the first point of the segment
+                    vertices.push_back({glm::vec3{segment[1].first, segment[1].second, 0.f}, currentColor, {}}); // Add the second point of the segment
                 }
-                glEnd();
+                GLobject drawCelluleBorder(vertices, GL_LINES, false); // Draw the segments using
+                drawCelluleBorder.draw();                              // Draw the segments
+            }
+        }
 
-                glPopMatrix();
+        if (render.drawCircles)
+        {
+            for (const auto& circle : render.getGraph()->allCircles) // Iterate through each circle
+            {
+                std::vector<Vertex> vertices;                           // Create a vector to hold the vertices of the circle
+                glm::vec3           currentColor = WHITE;               // Color for the circle
+                vertices.reserve(render.getGraph()->allCircles.size()); // Reserve space for the circle vertices
+                int nbrIterations = 50;                                 // Number of iterations for drawing the circle
+
+                vertices.push_back({glm::vec3{circle.first.first + circle.second, circle.first.second, 0.f}, currentColor, {}}); // Add the vertex to the circle
+
+                for (int j = 0; j < nbrIterations + 1; ++j)
+                {
+                    float angle = j * std::numbers::pi * 2. / nbrIterations; // Convert degrees to radians
+                    float x     = circle.first.first + circle.second * std::cos(angle);
+                    float y     = circle.first.second + circle.second * std::sin(angle);
+                    vertices.push_back({glm::vec3{x, y, 0.f}, currentColor, {}}); // Add the vertex to the circle
+                    vertices.push_back({glm::vec3{x, y, 0.f}, currentColor, {}}); // Add the vertex to the circle
+                }
+                GLobject drawCircles(vertices, GL_LINES, false); // Draw the circle using the GLobject class
+                drawCircles.draw();                              // Draw the circle
             }
         }
 
@@ -350,14 +367,32 @@ int main()
         if (render.nbrPointsChanged)
         {
             render.getGraph()->pointList.clear();                               // Clear the previous points
+            render.getGraph()->nearCellulePointsList.clear();                   // Clear the previous circumcenters
+            render.getGraph()->idxPointBorder.clear();                          // Clear the previous border points
             render.getGraph()->pointList.reserve(render.getGraph()->nbrPoints); // Reserve space for new points
+            render.getGraph()->allCircles.clear();                              // Clear the list of circles
             std::default_random_engine             eng(std::random_device{}());
-            std::uniform_real_distribution<double> dist_w(-10, 10);
-            std::uniform_real_distribution<double> dist_h(-10, 10);
+            std::uniform_real_distribution<double> rayon(0, render.getGraph()->radius - 1.); // Random radius from 0 to the graph's radius
+            std::uniform_real_distribution<double> angle(0, std::numbers::pi * 2);           // 2 * pi
 
             for (int i = 0; i < render.getGraph()->nbrPoints; ++i)
             {
-                render.getGraph()->pointList.emplace_back(dist_w(eng), dist_h(eng)); // Generate new random points
+                render.getGraph()->pointList.emplace_back(
+                    rayon(eng) * std::cos(angle(eng)), // Random x coordinate
+                    rayon(eng) * std::sin(angle(eng))  // Random y coordinate
+                );                                     // Generate random points in a circle of radius 10
+            }
+
+            // add border points to the graph
+            for (int i = 0; i < 50; ++i)
+            {
+                float angle = static_cast<float>(i) * (2.f * std::numbers::pi / 50.f); // Calculate the angle for each point
+                render.getGraph()->pointList.emplace_back(
+                    render.getGraph()->radius * std::cos(angle), // x coordinate
+                    render.getGraph()->radius * std::sin(angle)  // y coordinate
+                );
+                render.getGraph()->idxPointBorder.push_back(static_cast<int>(render.getGraph()->pointList.size() - 1)); // Add the index of the border point to the list
+                                                                                                                        // Generate points on the boundary of the circle
             }
 
             render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
@@ -385,6 +420,8 @@ int main()
 
         render.render2D(position, positionCENTRE); // Render the ImGui interface
 
+        render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+
         if (render.get_itrCentralisation() > 0)
         {
             render.getGraph()->centralisation(); // Centralize the points in the graph
@@ -399,7 +436,6 @@ int main()
             render.getGraph()->nbrCentralisation++; // Increment the number of centralisations applied
         }
 
-        render.getGraph()->doDelaunayAndCalculateCenters();                     // Perform Delaunay triangulation and calculate centers
         positionCENTRE.clear();                                                 // Clear the previous centers
         positionCENTRE.resize(render.getGraph()->nearCellulePointsList.size()); // Resize to the new number of centers
         for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
