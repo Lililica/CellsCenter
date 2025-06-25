@@ -177,7 +177,7 @@ int main()
 
     std::vector<dt::Vector2<double>> points;
 
-#if 0
+#if 1
     int numberPoints = 500;
 
     std::default_random_engine             eng(std::random_device{}());
@@ -226,6 +226,8 @@ int main()
     {
         render.getGraph()->pointList.emplace_back(point.x, point.y); // Convert dt::Vector2 to Point
     }
+
+    render.getGraph()->pointList = load_text_to_pointList(ASSETS_PATH + std::string{"pointExemple/pointListV0.txt"}); // Load points from a text file
 
     render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
@@ -371,6 +373,7 @@ int main()
             render.getGraph()->idxPointBorder.clear();                          // Clear the previous border points
             render.getGraph()->pointList.reserve(render.getGraph()->nbrPoints); // Reserve space for new points
             render.getGraph()->allCircles.clear();                              // Clear the list of circles
+            render.getGraph()->energies.clear();                                // Clear the list of energies
             std::default_random_engine             eng(std::random_device{}());
             std::uniform_real_distribution<double> rayon(0, render.getGraph()->radius - 1.); // Random radius from 0 to the graph's radius
             std::uniform_real_distribution<double> angle(0, std::numbers::pi * 2);           // 2 * pi
@@ -434,6 +437,22 @@ int main()
 
             render.decrease_itrCentralisation();
             render.getGraph()->nbrCentralisation++; // Increment the number of centralisations applied
+
+            double energieTotal = 0.0; // Initialize the total energy
+            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
+            {
+                Point p        = render.getGraph()->pointList[i];                    // Get the current point
+                float distance = std::sqrt(p.first * p.first + p.second * p.second); // Calculate the distance from the origin
+                if (distance < render.getGraph()->radius * 0.8f)
+                {
+                    energieTotal += render.getGraph()->calcul_CVT_energie(i); // Calculate the energy for the current point
+                }
+            }
+
+            if (render.getGraph()->energies.size() > 0 && energieTotal > 2 * render.getGraph()->energies.back())
+                render.getGraph()->energies.emplace_back(render.getGraph()->energies.back()); // Store the total energy in the energies vector
+            else
+                render.getGraph()->energies.emplace_back(energieTotal); // Store the total energy in the energies vector
         }
 
         positionCENTRE.clear();                                                 // Clear the previous centers

@@ -111,3 +111,9 @@ inline float distance(const std::pair<float, float>& p1, const std::pair<float, 
 }
 
 std::pair<Point, float> welzl(std::vector<Point>& points, std::vector<Point>& boundary);
+
+void save_text_from_pointList(const std::vector<Point>& points, const std::string& destination);
+
+std::vector<Point> load_text_to_pointList(const std::string& source);
+
+void save_energies_to_csv(const std::vector<double>& energies, const std::string& destination);

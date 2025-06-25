@@ -124,3 +124,84 @@ void save_text_from_vectObj(const std::vector<glm::vec3>& points, const std::str
 
     file.close();
 }
+
+void save_text_from_pointList(const std::vector<Point>& points, const std::string& destination)
+{
+    // Create a txt file and write the points to it
+    std::ofstream file(destination);
+    if (!file.is_open())
+    {
+        std::cerr << "Could not open the file: " << destination << std::endl;
+        return;
+    }
+
+    file << "[";
+    for (const auto& point : points)
+    {
+        file << "[" << point.first << "," << point.second << "]";
+        if (&point != &points.back()) // Check if it's not the last point
+        {
+            file << "," << "\n";
+        }
+        else
+        {
+            file << "]\n";
+        }
+    }
+
+    file.close();
+}
+
+std::vector<Point> load_text_to_pointList(const std::string& source)
+{
+    std::vector<Point> points;
+    std::ifstream      file(source);
+    std::string        line;
+
+    if (!file.is_open())
+    {
+        std::cerr << "Could not open the file: " << source << std::endl;
+        return points;
+    }
+
+    while (std::getline(file, line))
+    {
+        if (line.substr(0, 1) == "[")
+        {
+            size_t pos1 = line.find('[');
+            size_t pos2 = line.find(']');
+            if (pos1 != std::string::npos && pos2 != std::string::npos)
+            {
+                std::string        pointStr = line.substr(pos1 + 1, pos2 - pos1 - 1);
+                std::istringstream iss(pointStr);
+                Point              point;
+                char               comma; // To consume the comma
+                iss >> point.first >> comma >> point.second;
+                points.push_back(point);
+            }
+        }
+    }
+
+    file.close();
+    return points;
+}
+
+void save_energies_to_csv(const std::vector<double>& energies, const std::string& destination)
+{
+    std::ofstream file(destination);
+    if (!file.is_open())
+    {
+        std::cerr << "Could not open the file: " << destination << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < energies.size(); ++i)
+    {
+        if (i > 0)
+        {
+            file << i << "," << "\"" << energies[i] << "\"" << ",\n";
+        }
+    }
+
+    file.close();
+}

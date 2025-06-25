@@ -3,6 +3,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 #include <random>
+#include "utils.hpp"
 
 void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE)
 {
@@ -153,6 +154,12 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     else
     {
         ImGui::Text("Waiting the centralisation is finished...");
+    }
+
+    if (ImGui::Button("Save Energies") && itrCentralisation == 0)
+    {
+        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0centroidBorder.csv"}); // Save the energies to a CSV file
+        ImGui::Text("Energies saved to CVTenergie.csv");
     }
 
     if (itrCentralisation == 1)

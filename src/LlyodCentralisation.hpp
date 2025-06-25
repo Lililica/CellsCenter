@@ -18,8 +18,8 @@ struct Graphe {
     int   currentIdxEnergiePoint = 0;   // Index of the point for which we want to calculate the CVT energy
     float currentCVTEnergie      = 0.f; // Current CVT energy for the point at currentIdxEnergiePoint
 
-    bool  useWelzl    = true;  // Flag to indicate whether to use Welzl's algorithm for circle calculation
-    bool  useCentroid = false; // Flag to indicate whether to use the centroid for circle calculation
+    bool  useWelzl    = false; // Flag to indicate whether to use Welzl's algorithm for circle calculation
+    bool  useCentroid = true;  // Flag to indicate whether to use the centroid for circle calculation
     bool  useSquare   = false; // Flag to indicate whether to use the square of the distance for energy calculation
     Point welzlCenterOf0;      // Center of the circle calculated by Welzl's algorithm
     Point centroidCenterOf0;   // Center of the centroid calculated from the points
@@ -39,6 +39,8 @@ struct Graphe {
     std::vector<std::array<Point, 3>> trianglesPoints; // List of triangles formed by the near cell points
 
     std::vector<std::pair<Point, float>> allCircles;
+
+    std::vector<double> energies; // List of energies after each iterations
 
     void centralisation();
 

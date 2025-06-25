@@ -94,10 +94,11 @@ void Graphe::findBorderPoints()
         if (dist > radius - 0.001f)
         {
             // Clamp the point to the circle boundary
-            float angle  = std::atan2(point.second, point.first); // Calculate the angle of the point
-            point.first  = std::cos(angle) * radius;              // Scale the point to the circle boundary
-            point.second = std::sin(angle) * radius;              // Scale the point to the circle boundary
-            continue;                                             // Skip points that are outside the defined circle
+            float angle  = std::atan2(point.second, point.first);  // Calculate the angle of the point
+            point.first  = std::cos(angle) * radius;               // Scale the point to the circle boundary
+            point.second = std::sin(angle) * radius;               // Scale the point to the circle boundary
+            idxPointBorder.emplace_back(getIndexFromPoint(point)); // Add the index of the border point to the list
+            continue;                                              // Skip points that are outside the defined circle
         }
     }
 #endif
