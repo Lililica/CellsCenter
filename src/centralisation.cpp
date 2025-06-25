@@ -146,6 +146,43 @@ void Graphe::centralisation()
     // {
     allCircles.clear(); // Clear the list of circles before centralisation
 
+    if (kNearest)
+    {
+        kNearestPoints.clear();                  // Clear the list of k-nearest points before centralisation
+        kNearestPoints.resize(pointList.size()); // Resize to match the number of points in pointList
+        for (int i = 0; i < pointList.size(); ++i)
+        {
+            int compteur = 0; // Counter for the number of k-nearest points found
+            while (compteur < k)
+            {
+                float minDistance = std::numeric_limits<float>::max();
+                Point closestPoint;
+                for (const auto& neighbor : nearCellulePoints[i])
+                {
+                    if (std::find(kNearestPoints[i].begin(), kNearestPoints[i].end(), neighbor) == kNearestPoints[i].end())
+                    {
+                        float distance = std::hypot(neighbor.first - pointList[i].first, neighbor.second - pointList[i].second);
+                        if (distance < minDistance)
+                        {
+                            minDistance  = distance;
+                            closestPoint = neighbor;
+                        }
+                    }
+                }
+                if (closestPoint != Point{0, 0}) // Check if the closest point is valid
+                {
+                    kNearestPoints[i].push_back(closestPoint); // Add the closest point to the k-nearest points
+                    compteur++;                                // Increment the counter for k-nearest points
+                }
+                else
+                {
+                    std::cerr << "No valid closest point found for point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
+                    break; // Break if no valid closest point is found
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < pointList.size(); ++i)
     {
         if (std::find(idxPointBorder.begin(), idxPointBorder.end(), i) != idxPointBorder.end())
@@ -216,6 +253,13 @@ void Graphe::centralisation()
 
             centroid = computeCentroid(neighbors);
         }
+        else if (kNearest)
+        {
+            neighbors = kNearestPoints[i]; // Get the k-nearest neighbors from the kNearestPoints
+            sortPointsCCW(neighbors);      // Sort neighbors in counter-clockwise order around the current point
+
+            centroid = computeCentroid(neighbors);
+        }
         else
         {
             std::cerr << "No valid method selected for centralisation. Skipping point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
@@ -265,6 +309,7 @@ void Graphe::doDelaunayAndCalculateCenters()
     nearCellulePointsList.clear();              // Clear the nearCellulePointsList vector to prepare for new data
     celluleBorder.clear();                      // Clear the celluleBorder vector to prepare for new data
     nearCellulePoints.resize(pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
+    kNearestPoints.clear();                     // Clear the kNearestPoints vector to prepare for new data
 
     calculateCenterFromDelaunayTriangles(triangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
 

@@ -21,6 +21,7 @@ struct Graphe {
     bool  useWelzl    = false; // Flag to indicate whether to use Welzl's algorithm for circle calculation
     bool  useCentroid = true;  // Flag to indicate whether to use the centroid for circle calculation
     bool  useSquare   = false; // Flag to indicate whether to use the square of the distance for energy calculation
+    bool  kNearest    = false; // Flag to indicate whether to use the k-nearest neighbors for energy calculation
     Point welzlCenterOf0;      // Center of the circle calculated by Welzl's algorithm
     Point centroidCenterOf0;   // Center of the centroid calculated from the points
 
@@ -41,6 +42,9 @@ struct Graphe {
     std::vector<std::pair<Point, float>> allCircles;
 
     std::vector<double> energies; // List of energies after each iterations
+
+    int                             k = 6;          // Number of nearest neighbors to consider for k-nearest points
+    std::vector<std::vector<Point>> kNearestPoints; // List of k-nearest points for each point in pointList
 
     void centralisation();
 

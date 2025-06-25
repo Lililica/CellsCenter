@@ -52,6 +52,7 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
         graphe.useCentroid       = false; // Toggle the use of centroid calculation
         graphe.useSquare         = true;  // Toggle the use of
+        graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
     }
     if (ImGui::Button("Switch to Welzl Circle"))
     {
@@ -60,6 +61,7 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         graphe.useWelzl          = true;  // Toggle the use of Welzl's algorithm
         graphe.useCentroid       = false; // Toggle the use of centroid calculation
         graphe.useSquare         = false; // Toggle the use of square calculation
+        graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
     }
     if (ImGui::Button("Switch to Centroid"))
     {
@@ -68,6 +70,16 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
         graphe.useCentroid       = true;  // Toggle the use of centroid calculation
         graphe.useSquare         = false; // Toggle the use of square calculation
+        graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+    }
+    if (ImGui::Button("Switch to k-nearest"))
+    {
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = false; // Toggle the use of centroid calculation
+        graphe.useSquare         = false; // Toggle the use of square calculation
+        graphe.kNearest          = true;  // Toggle the use of k-nearest neighbors
     }
 
     graphe.updateCenterExample();
