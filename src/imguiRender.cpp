@@ -5,7 +5,7 @@
 #include <random>
 #include "utils.hpp"
 
-void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE)
+void Render::render2D()
 {
     ImGui_ImplGlfw_NewFrame();
     ImGui_ImplOpenGL3_NewFrame();
@@ -82,7 +82,6 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
         graphe.kNearest          = true;  // Toggle the use of k-nearest neighbors
     }
 
-    graphe.updateCenterExample();
     ImGui::Text("Center of Point 0 with Welzl Circle : ");
     ImGui::Text("(%f, %f)", graphe.welzlCenterOf0.first, graphe.welzlCenterOf0.second);
     ImGui::Text("Center of Point 0 with Centroid : ");
@@ -127,7 +126,7 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
     }
 
     int previousNbrPoints = graphe.nbrPoints; // Store the previous number of points
-    ImGui::SliderInt("Nbr of points", &graphe.nbrPoints, 10, 1000);
+    ImGui::SliderInt("Nbr of points", &graphe.nbrPoints, 10, 5000);
     if (previousNbrPoints != graphe.nbrPoints)
     {
         nbrPointsChanged              = true; // Set the flag to true if the number of points has changed
@@ -170,7 +169,7 @@ void Render::render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& 
 
     if (ImGui::Button("Save Energies") && itrCentralisation == 0)
     {
-        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0centroidBorder.csv"}); // Save the energies to a CSV file
+        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0kNear4.csv"}); // Save the energies to a CSV file
         ImGui::Text("Energies saved to CVTenergie.csv");
     }
 

@@ -152,32 +152,32 @@ void Graphe::centralisation()
         kNearestPoints.resize(pointList.size()); // Resize to match the number of points in pointList
         for (int i = 0; i < pointList.size(); ++i)
         {
-            int compteur = 0; // Counter for the number of k-nearest points found
+            int   compteur = 0;            // Counter for the number of k-nearest points found
+            Point point    = pointList[i]; // Get the current point from the graph
             while (compteur < k)
             {
                 float minDistance = std::numeric_limits<float>::max();
                 Point closestPoint;
-                for (const auto& neighbor : nearCellulePoints[i])
+                for (const auto& neighbor : pointList)
                 {
-                    if (std::find(kNearestPoints[i].begin(), kNearestPoints[i].end(), neighbor) == kNearestPoints[i].end())
+                    if (std::find(kNearestPoints[i].begin(), kNearestPoints[i].end(), neighbor) != kNearestPoints[i].end())
                     {
-                        float distance = std::hypot(neighbor.first - pointList[i].first, neighbor.second - pointList[i].second);
-                        if (distance < minDistance)
+                        float d = distance(neighbor, point);
+                        if (d < minDistance)
                         {
-                            minDistance  = distance;
+                            minDistance  = d;
                             closestPoint = neighbor;
                         }
                     }
                 }
-                if (closestPoint != Point{0, 0}) // Check if the closest point is valid
+                if (minDistance < 10000) // Check if the closest point is valid
                 {
                     kNearestPoints[i].push_back(closestPoint); // Add the closest point to the k-nearest points
                     compteur++;                                // Increment the counter for k-nearest points
                 }
                 else
                 {
-                    std::cerr << "No valid closest point found for point (" << pointList[i].first << ", " << pointList[i].second << ").\n";
-                    break; // Break if no valid closest point is found
+                    continue; // Break if no valid closest point is found
                 }
             }
         }
@@ -322,14 +322,14 @@ void Graphe::doDelaunayAndCalculateCenters()
     triesNearCellulePoints();
 }
 
-void Graphe::updateCenterExample()
-{
-    std::vector<Point> neighbors = nearCellulePoints[0]; // Get the neighbors of the current point
+// void Graphe::updateCenterExample()
+// {
+//     std::vector<Point> neighbors = nearCellulePoints[0]; // Get the neighbors of the current point
 
-    sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
-                              // Welzl
-    std::vector<Point> boundaryPoints;
-    welzlCenterOf0 = welzl(neighbors, boundaryPoints).first;
-    // Centrois
-    centroidCenterOf0 = computeCentroid(neighbors);
-}
+//     sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
+//                               // Welzl
+//     std::vector<Point> boundaryPoints;
+//     welzlCenterOf0 = welzl(neighbors, boundaryPoints).first;
+//     // Centrois
+//     centroidCenterOf0 = computeCentroid(neighbors);
+// }

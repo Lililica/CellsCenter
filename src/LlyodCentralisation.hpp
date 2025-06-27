@@ -43,7 +43,7 @@ struct Graphe {
 
     std::vector<double> energies; // List of energies after each iterations
 
-    int                             k = 6;          // Number of nearest neighbors to consider for k-nearest points
+    int                             k = 8;          // Number of nearest neighbors to consider for k-nearest points
     std::vector<std::vector<Point>> kNearestPoints; // List of k-nearest points for each point in pointList
 
     void centralisation();

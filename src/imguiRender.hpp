@@ -10,7 +10,7 @@ private:
 
     Graphe graphe; // Instance of the Graphe class to hold points and adjacencies
 
-    TrackballCamera camera{20.f, 0.f, 0.f}; // Initialize the camera with a distance of 10, angleX of 45 degrees, and angleY of 0 degrees
+    TrackballCamera camera{10.f, 0.f, 0.f}; // Initialize the camera with a distance of 10, angleX of 45 degrees, and angleY of 0 degrees
     int             itrCentralisation = 0;  // Counter for the number of centralisations applied
 
 public:
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    void render2D(std::vector<glm::vec3>& position, std::vector<glm::vec3>& positionCENTRE);
+    void render2D();
 
     Graphe* getGraph()
     {

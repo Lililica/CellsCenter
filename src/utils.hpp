@@ -79,6 +79,14 @@ struct GLobject {
         glDeleteBuffers(1, &_vbo);
     }
 
+    void set_vertex_data(const std::vector<Vertex>& mesh)
+    {
+        _n_vertex = mesh.size();
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+        glBufferData(GL_ARRAY_BUFFER, mesh.size() * sizeof(Vertex), mesh.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     void
         draw() const
     {
@@ -92,7 +100,7 @@ using Point = std::pair<float, float>; // Représente un point (x, y)
 
 void button_action(GLFWwindow* window, TrackballCamera* trackball);
 
-void draw_ball(TrackballCamera* trackball, const Sphere& sphere, glm::vec3& position, const Program& program, GLuint& vao, GLFWwindow* window);
+void draw_ball(TrackballCamera* trackball, const GLobject& sphere, const Program& program, GLFWwindow* window);
 
 std::vector<glm::vec3> extract_point_from_obj(const std::string& filename);
 

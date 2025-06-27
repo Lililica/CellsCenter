@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cmath>
+#include <iostream>
 #include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include "glm/trigonometric.hpp"
 
 class TrackballCamera {
@@ -8,6 +11,8 @@ private:
     float m_fDistance;
     float m_fAngleX;
     float m_fAngleY;
+
+    glm::vec2 m_vCameraOrigin{0.f, 0.f}; // Camera origin in the XY plane
 
 public:
     TrackballCamera() = default;
@@ -31,12 +36,24 @@ public:
             m_fAngleX += degrees;
     }
 
+    // Moove the camera on the left or right in the plane of the camera
+
+    void moveLeft(float dist)
+    {
+        m_vCameraOrigin.x += dist;
+    }
+
+    void moveUp(float dist)
+    {
+        m_vCameraOrigin.y -= dist;
+    }
+
     glm::mat4 getViewMatrix() const;
     glm::vec3 getPosition() const;
     void      set_to(glm::vec3 pos)
     {
         m_fDistance = glm::length(pos);
         m_fAngleX   = glm::degrees(asin(pos.y / m_fDistance));
-        m_fAngleY   = glm::degrees(atan2(pos.z, pos.x));
+        m_fAngleY   = glm::degrees(atan2(pos.x, pos.z));
     };
 };

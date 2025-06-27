@@ -34,7 +34,7 @@
 
 static void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
 {
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
@@ -131,41 +131,55 @@ int main()
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
 
-    Sphere sphere(.1f, 4, 2);
+    // Sphere sphere(.1f, 4, 2);
 
-    GLuint vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    GLuint vbo = 0;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // GLuint vao = 0;
+    // glGenVertexArrays(1, &vao);
+    // glBindVertexArray(vao);
+    // GLuint vbo = 0;
+    // glGenBuffers(1, &vbo);
+    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    // glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
+    // glEnableVertexAttribArray(2);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindVertexArray(0);
 
-    Sphere sphereCENTRE(.05f, 4, 2);
+    // Sphere sphereCENTRE(.05f, 4, 2);
 
-    GLuint vaoCENTRE = 0;
-    glGenVertexArrays(1, &vaoCENTRE);
-    glBindVertexArray(vaoCENTRE);
-    GLuint vboCENTRE = 0;
-    glGenBuffers(1, &vboCENTRE);
-    glBindBuffer(GL_ARRAY_BUFFER, vboCENTRE);
-    glBufferData(GL_ARRAY_BUFFER, sphereCENTRE.getVertexCount() * sizeof(ShapeVertex), sphereCENTRE.getDataPointer(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // GLuint vaoCENTRE = 0;
+    // glGenVertexArrays(1, &vaoCENTRE);
+    // glBindVertexArray(vaoCENTRE);
+    // GLuint vboCENTRE = 0;
+    // glGenBuffers(1, &vboCENTRE);
+    // glBindBuffer(GL_ARRAY_BUFFER, vboCENTRE);
+    // glBufferData(GL_ARRAY_BUFFER, sphereCENTRE.getVertexCount() * sizeof(ShapeVertex), sphereCENTRE.getDataPointer(), GL_STATIC_DRAW);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
+    // glEnableVertexAttribArray(2);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glBindVertexArray(0);
+
+    std::vector<Vertex> v = {
+        {glm::vec3{-0.5f, -0.5f, 0.f}, glm::vec3{1.f, 0.f, 0.f}, {}},
+        {glm::vec3{0.5f, -0.5f, 0.f}, glm::vec3{1.f, 0.f, 0.f}, {}},
+        {glm::vec3{0.f, 0.5f, 0.f}, glm::vec3{1.f, 0.f, 0.f}, {}},
+    };
+    GLobject triangleObject(v, GL_TRIANGLES, false); // Object to hold the triangles
+
+    v = {
+        {glm::vec3{-0.25f, -0.25f, 0.f}, glm::vec3{0.f, 1.f, 0.f}, {}},
+        {glm::vec3{0.25f, -0.25f, 0.f}, glm::vec3{0.f, 1.f, 0.f}, {}},
+        {glm::vec3{0.f, 0.25f, 0.f}, glm::vec3{0.f, 1.f, 0.f}, {}},
+    };
+    GLobject triangleObjectVoro(v, GL_TRIANGLES, false); // Object to hold the triangles
 
     int width  = WINDOW_WIDTH; // Initialize width and height for the viewport
     int height = WINDOW_HEIGHT;
@@ -231,25 +245,28 @@ int main()
 
     render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
-    // Initialize the position of the sphere at each point in the graph to display them
-
-    std::vector<glm::vec3> position(render.getGraph()->pointList.size());                   // Initial position of the sphere
-    std::vector<glm::vec3> positionCENTRE(render.getGraph()->nearCellulePointsList.size()); // Position of the center sphere
     // std::cout << "Number of points: " << render.getGraph()->pointList.size() / 2 << std::endl;
 
+    float factorTriangle = 0.2f; // Factor to scale the triangles
+
+    v.clear(); // Clear the vertex vector
     for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
     {
-        position[i].x = render.getGraph()->pointList[i].first;
-        position[i].y = render.getGraph()->pointList[i].second;
-        position[i].z = 0.f; // Set z to 0 for 2D points
+        v.push_back({glm::vec3{render.getGraph()->pointList[i].first - factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+        v.push_back({glm::vec3{render.getGraph()->pointList[i].first + factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+        v.push_back({glm::vec3{render.getGraph()->pointList[i].first, render.getGraph()->pointList[i].second + factorTriangle, 0.f}, RED, {}});
     }
+    triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
 
+    factorTriangle = 0.1f; // Factor to scale the circumcenters
+    v.clear();             // Clear the vertex vector for circumcenters
     for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
     {
-        positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
-        positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
-        positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
     }
+    triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
     glm::vec3 origin             = glm::vec3{0., 0., 0.};
     float     radiusEnergiePoint = .5f; // Radius of the energy point sphere
@@ -284,9 +301,9 @@ int main()
             glfwGetCursorPos(window, &mouseX, &mouseY);
             render.getGraph()->pointList[0].first  = (static_cast<float>(mouseX) / width) * 30 - 15.;           // Convert mouse position to OpenGL coordinates
             render.getGraph()->pointList[0].second = (static_cast<float>(height - mouseY) / height) * 30 - 15.; // Convert mouse position to OpenGL coordinates
-            position[0].x                          = render.getGraph()->pointList[0].first;
-            position[0].y                          = render.getGraph()->pointList[0].second;
-            position[0].z                          = 0.f; // Set z to 0 for 2D points
+            // position[0].x                          = render.getGraph()->pointList[0].first;
+            // position[0].y                          = render.getGraph()->pointList[0].second;
+            // position[0].z                          = 0.f; // Set z to 0 for 2D points
         }
 
         if (render.drawTriangles)
@@ -351,20 +368,14 @@ int main()
 
         if (render.drawPoints)
         {
-            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
-            {
-                draw_ball(render.getCamera(), sphere, position[i], program, vao, window); // Draw the sphere at each point
-            }
+            draw_ball(render.getCamera(), triangleObject, program, window); // Draw the sphere at each point
         }
         if (render.drawVertex)
         {
-            for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
-            {
-                draw_ball(render.getCamera(), sphereCENTRE, positionCENTRE[i], program, vaoCENTRE, window); // Draw the center sphere at each circumcenter
-            }
+            draw_ball(render.getCamera(), triangleObjectVoro, program, window); // Draw the center sphere at each circumcenter
         }
 
-        draw_ball(render.getCamera(), sphereCENTRE, origin, program, vaoCENTRE, window); // Draw the center sphere at each circumcenter
+        // draw_ball(render.getCamera(), triangleObjectVoro, program, window); // Draw the center sphere at each circumcenter
 
         if (render.nbrPointsChanged)
         {
@@ -400,68 +411,78 @@ int main()
 
             render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
-            position.resize(render.getGraph()->pointList.size());                   // Resize position vector to match the number of points
-            positionCENTRE.resize(render.getGraph()->nearCellulePointsList.size()); // Resize positionCENTRE vector to match the number of circumcenters
+            factorTriangle = 0.2f; // Factor to scale the triangles
 
+            v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
             {
-                position[i].x = render.getGraph()->pointList[i].first;
-                position[i].y = render.getGraph()->pointList[i].second;
-                position[i].z = 0.f; // Set z to 0 for 2D points
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first - factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first + factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first, render.getGraph()->pointList[i].second + factorTriangle, 0.f}, RED, {}});
             }
+            triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
 
+            factorTriangle = 0.1f; // Factor to scale the circumcenters
+            v.clear();             // Clear the vertex vector for circumcenters
             for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
             {
-                positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
-                positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
-                positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
             }
+            triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
             render.resetCentralisation();    // Reset the centralisation counter
             render.nbrPointsChanged = false; // Reset the flag after updating the points
         }
 
-        render.render2D(position, positionCENTRE); // Render the ImGui interface
-
-        render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+        render.render2D(); // Render the ImGui interface
 
         if (render.get_itrCentralisation() > 0)
         {
+            render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+
             render.getGraph()->centralisation(); // Centralize the points in the graph
+
+            factorTriangle = 0.2f; // Factor to scale the triangles
+
+            v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
             {
-                position[i].x = render.getGraph()->pointList[i].first;
-                position[i].y = render.getGraph()->pointList[i].second;
-                position[i].z = 0.f; // Set z to 0 for 2D points
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first - factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first + factorTriangle, render.getGraph()->pointList[i].second - factorTriangle, 0.f}, RED, {}});
+                v.push_back({glm::vec3{render.getGraph()->pointList[i].first, render.getGraph()->pointList[i].second + factorTriangle, 0.f}, RED, {}});
             }
+            triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
+
+            factorTriangle = 0.1f; // Factor to scale the circumcenters
+            v.clear();             // Clear the vertex vector for circumcenters
+            for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
+            {
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+            }
+            triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
             render.decrease_itrCentralisation();
             render.getGraph()->nbrCentralisation++; // Increment the number of centralisations applied
 
-            double energieTotal = 0.0; // Initialize the total energy
-            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
-            {
-                Point p        = render.getGraph()->pointList[i];                    // Get the current point
-                float distance = std::sqrt(p.first * p.first + p.second * p.second); // Calculate the distance from the origin
-                if (distance < render.getGraph()->radius * 0.8f)
-                {
-                    energieTotal += render.getGraph()->calcul_CVT_energie(i); // Calculate the energy for the current point
-                }
-            }
+            // double energieTotal = 0.0; // Initialize the total energy
+            // for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
+            // {
+            //     Point p        = render.getGraph()->pointList[i];                    // Get the current point
+            //     float distance = std::sqrt(p.first * p.first + p.second * p.second); // Calculate the distance from the origin
+            //     if (distance < render.getGraph()->radius * 0.8f)
+            //     {
+            //         energieTotal += render.getGraph()->calcul_CVT_energie(i); // Calculate the energy for the current point
+            //     }
+            // }
 
-            if (render.getGraph()->energies.size() > 0 && energieTotal > 2 * render.getGraph()->energies.back())
-                render.getGraph()->energies.emplace_back(render.getGraph()->energies.back()); // Store the total energy in the energies vector
-            else
-                render.getGraph()->energies.emplace_back(energieTotal); // Store the total energy in the energies vector
-        }
-
-        positionCENTRE.clear();                                                 // Clear the previous centers
-        positionCENTRE.resize(render.getGraph()->nearCellulePointsList.size()); // Resize to the new number of centers
-        for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
-        {
-            positionCENTRE[i].x = render.getGraph()->nearCellulePointsList[i].first;
-            positionCENTRE[i].y = render.getGraph()->nearCellulePointsList[i].second;
-            positionCENTRE[i].z = 0.f; // Set z to 0 for 2D points
+            // if (render.getGraph()->energies.size() > 0 && energieTotal > 2 * render.getGraph()->energies.back())
+            //     render.getGraph()->energies.emplace_back(render.getGraph()->energies.back()); // Store the total energy in the energies vector
+            // else
+            //     render.getGraph()->energies.emplace_back(energieTotal); // Store the total energy in the energies vector
         }
 
         /* Swap front and back buffers */
