@@ -8,8 +8,8 @@
 
 // Define a list of color glm::vec3
 constexpr glm::vec3 RED   = glm::vec3(1.0f, 0.0f, 0.0f);
-constexpr glm::vec3 GREEN = glm::vec3(0.0f, 1.0f, 0.0f);
-constexpr glm::vec3 BLUE  = glm::vec3(0.0f, 0.0f, 1.0f);
+constexpr glm::vec3 GREEN = glm::vec3(0.f, .5f, 0.f);
+constexpr glm::vec3 BLUE  = glm::vec3(0.f, 0.f, 1.0f);
 constexpr glm::vec3 WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
 constexpr glm::vec3 BLACK = glm::vec3(0.0f, 0.0f, 0.0f);
 

@@ -247,7 +247,7 @@ int main()
 
     // std::cout << "Number of points: " << render.getGraph()->pointList.size() / 2 << std::endl;
 
-    float factorTriangle = 0.2f; // Factor to scale the triangles
+    float factorTriangle = 0.15f; // Factor to scale the triangles
 
     v.clear(); // Clear the vertex vector
     for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
@@ -258,13 +258,13 @@ int main()
     }
     triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
 
-    factorTriangle = 0.1f; // Factor to scale the circumcenters
-    v.clear();             // Clear the vertex vector for circumcenters
+    float factorTriangle2 = 0.07f; // Factor to scale the circumcenters
+    v.clear();                     // Clear the vertex vector for circumcenters
     for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
     {
-        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
-        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
-        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}});
+        v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
     }
     triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
@@ -280,7 +280,7 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClearColor(1.f, 0.5f, 0.5f, 0.1f);
+        glClearColor(0.9f, .9f, .9f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwGetWindowSize(window, &width, &height);
@@ -330,7 +330,7 @@ int main()
             for (const auto& list : render.getGraph()->nearCellulePointsTriees) // Get the list of segments formed by the near cell points
             {
                 std::vector<Vertex> vertices;             // Create a vector to hold the vertices of the segments
-                glm::vec3           currentColor = GREEN; // Color for the segments
+                glm::vec3           currentColor = BLACK; // Color for the segments
                 vertices.reserve(list.size() * 2);        // Reserve space for the segments
                 for (const auto& segment : list)          // Iterate through each segment
                 {
@@ -411,8 +411,6 @@ int main()
 
             render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
-            factorTriangle = 0.2f; // Factor to scale the triangles
-
             v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
             {
@@ -422,13 +420,12 @@ int main()
             }
             triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
 
-            factorTriangle = 0.1f; // Factor to scale the circumcenters
-            v.clear();             // Clear the vertex vector for circumcenters
+            v.clear(); // Clear the vertex vector for circumcenters
             for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
             {
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, GREEN, {}});
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle2, 0.f}, GREEN, {}}); // Add circumcenter vertices
             }
             triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
@@ -444,8 +441,6 @@ int main()
 
             render.getGraph()->centralisation(); // Centralize the points in the graph
 
-            factorTriangle = 0.2f; // Factor to scale the triangles
-
             v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
             {
@@ -455,34 +450,33 @@ int main()
             }
             triangleObject.set_vertex_data(v); // Set the vertex data for the triangle object
 
-            factorTriangle = 0.1f; // Factor to scale the circumcenters
-            v.clear();             // Clear the vertex vector for circumcenters
+            v.clear(); // Clear the vertex vector for circumcenters
             for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
             {
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle, render.getGraph()->nearCellulePointsList[i].second - factorTriangle, 0.f}, GREEN, {}});
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}});
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
             }
             triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
             render.decrease_itrCentralisation();
             render.getGraph()->nbrCentralisation++; // Increment the number of centralisations applied
 
-            // double energieTotal = 0.0; // Initialize the total energy
-            // for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
-            // {
-            //     Point p        = render.getGraph()->pointList[i];                    // Get the current point
-            //     float distance = std::sqrt(p.first * p.first + p.second * p.second); // Calculate the distance from the origin
-            //     if (distance < render.getGraph()->radius * 0.8f)
-            //     {
-            //         energieTotal += render.getGraph()->calcul_CVT_energie(i); // Calculate the energy for the current point
-            //     }
-            // }
+            double energieTotal = 0.0; // Initialize the total energy
+            for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
+            {
+                Point p        = render.getGraph()->pointList[i];                    // Get the current point
+                float distance = std::sqrt(p.first * p.first + p.second * p.second); // Calculate the distance from the origin
+                if (distance < render.getGraph()->radius * 0.8f)
+                {
+                    energieTotal += render.getGraph()->calcul_CVT_energie(i); // Calculate the energy for the current point
+                }
+            }
 
-            // if (render.getGraph()->energies.size() > 0 && energieTotal > 2 * render.getGraph()->energies.back())
-            //     render.getGraph()->energies.emplace_back(render.getGraph()->energies.back()); // Store the total energy in the energies vector
-            // else
-            //     render.getGraph()->energies.emplace_back(energieTotal); // Store the total energy in the energies vector
+            if (render.getGraph()->energies.size() > 0 && energieTotal > 2 * render.getGraph()->energies.back())
+                render.getGraph()->energies.emplace_back(render.getGraph()->energies.back()); // Store the total energy in the energies vector
+            else
+                render.getGraph()->energies.emplace_back(energieTotal); // Store the total energy in the energies vector
         }
 
         /* Swap front and back buffers */

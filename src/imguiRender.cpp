@@ -169,7 +169,7 @@ void Render::render2D()
 
     if (ImGui::Button("Save Energies") && itrCentralisation == 0)
     {
-        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0kNear4.csv"}); // Save the energies to a CSV file
+        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0CentroidVoro.csv"}); // Save the energies to a CSV file
         ImGui::Text("Energies saved to CVTenergie.csv");
     }
 
