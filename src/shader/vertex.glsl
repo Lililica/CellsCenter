@@ -103,7 +103,7 @@ float determinant(mat4 matrix) {
     return det;
 }
 
-mat4 inverse(mat4 matrix) {
+mat4 myInverse(mat4 matrix) {
     // Algorithm de calcul de l'inverse d'une matrice 4x4
     float det = determinant(matrix);
     if (abs(det) < 1e-6) {
@@ -160,7 +160,7 @@ void main() {
     MVMatrix = scale(MVMatrix, uScale); // Application de l'échelle
     MVMatrix = translate(MVMatrix, uPosition); // Application de la translation
 
-    mat4 NormalMatrix = transpose(inverse(MVMatrix)); // Calcul de la matrice normale
+    mat4 NormalMatrix = transpose(myInverse(MVMatrix)); // Calcul de la matrice normale
     mat4 MVPMatrix = ProjMatrix * uCameraMatrix * MVMatrix; // Calcul de la matrice MVP
 
     // Passage en coordonnées homogènes
