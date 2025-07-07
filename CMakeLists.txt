@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 # You can set the name of your project here
-project(ImGuiTemplate)
+project(DelaunayCVT)
 add_executable(${PROJECT_NAME})
 
 # Choose your C++ version
@@ -66,3 +66,38 @@ if(CUDA_FOUND)
 else()
     message(WARNING "CUDA not found. CUDA support will be disabled.")
 endif()
+
+
+include(ExternalProject)
+
+set(EIGEN_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-install/")
+
+ExternalProject_Add(
+    eigen
+    URL  https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-src"
+    BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-build"
+    INSTALL_DIR "${EIGEN_INSTALL_DIR}"
+    CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    -DCMAKE_BUILD_TYPE=Release
+)
+
+file(MAKE_DIRECTORY ${EIGEN_INSTALL_DIR}/include)  # avoid race condition
+
+add_library(eigenlib INTERFACE IMPORTED GLOBAL)
+add_dependencies(eigenlib eigen)
+target_compile_features(eigenlib INTERFACE cxx_std_14)
+
+set_target_properties(eigenlib PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${EIGEN_INSTALL_DIR}/include/eigen3
+)
+
+# Add eigen as a dependency to your main project
+add_dependencies(${PROJECT_NAME} eigenlib)
+# Link eigenlib to your main project
+target_link_libraries(${PROJECT_NAME} PRIVATE eigenlib)
+# Add the include directory for eigen
+target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN_INSTALL_DIR}/include/eigen3)
+
+

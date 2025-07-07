@@ -21,6 +21,7 @@ public:
     bool mousePoint        = false;
     bool nbrPointsChanged  = false;
     bool drawCircles       = false; // Flag to control whether to draw circles in the render
+    bool drawOrientedBox   = false; // Flag to control whether to draw the oriented bounding box
 
     Render()
         : io(ImGui::GetIO()) {};

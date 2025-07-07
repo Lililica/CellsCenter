@@ -1,5 +1,4 @@
 
-#include "shader/Shader.hpp"
 #include "shader/program.hpp"
 #include "shader/shader.hpp"
 #include "utils.hpp"
@@ -130,42 +129,6 @@ int main()
 
     Program program = loadProgram(SHADERS_PATH + std::string{"vertex.glsl"}, SHADERS_PATH + std::string{"fragment.glsl"});
     program.use();
-
-    // Sphere sphere(.1f, 4, 2);
-
-    // GLuint vao = 0;
-    // glGenVertexArrays(1, &vao);
-    // glBindVertexArray(vao);
-    // GLuint vbo = 0;
-    // glGenBuffers(1, &vbo);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sphere.getVertexCount() * sizeof(ShapeVertex), sphere.getDataPointer(), GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
-    // glEnableVertexAttribArray(1);
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
-    // glEnableVertexAttribArray(2);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-
-    // Sphere sphereCENTRE(.05f, 4, 2);
-
-    // GLuint vaoCENTRE = 0;
-    // glGenVertexArrays(1, &vaoCENTRE);
-    // glBindVertexArray(vaoCENTRE);
-    // GLuint vboCENTRE = 0;
-    // glGenBuffers(1, &vboCENTRE);
-    // glBindBuffer(GL_ARRAY_BUFFER, vboCENTRE);
-    // glBufferData(GL_ARRAY_BUFFER, sphereCENTRE.getVertexCount() * sizeof(ShapeVertex), sphereCENTRE.getDataPointer(), GL_STATIC_DRAW);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, position));
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, normal));
-    // glEnableVertexAttribArray(1);
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeVertex), (void*)offsetof(ShapeVertex, texCoords));
-    // glEnableVertexAttribArray(2);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
 
     std::vector<Vertex> v = {
         {glm::vec3{-0.5f, -0.5f, 0.f}, glm::vec3{1.f, 0.f, 0.f}, {}},
@@ -347,7 +310,7 @@ int main()
             for (const auto& circle : render.getGraph()->allCircles) // Iterate through each circle
             {
                 std::vector<Vertex> vertices;                           // Create a vector to hold the vertices of the circle
-                glm::vec3           currentColor = WHITE;               // Color for the circle
+                glm::vec3           currentColor = BLACK;               // Color for the circle
                 vertices.reserve(render.getGraph()->allCircles.size()); // Reserve space for the circle vertices
                 int nbrIterations = 50;                                 // Number of iterations for drawing the circle
 
@@ -363,6 +326,28 @@ int main()
                 }
                 GLobject drawCircles(vertices, GL_LINES, false); // Draw the circle using the GLobject class
                 drawCircles.draw();                              // Draw the circle
+            }
+        }
+        if (render.drawOrientedBox)
+        {
+            for (const auto& orientedBox : render.getGraph()->allOrientedBoxes) // Iterate through each oriented bounding box
+            {
+                std::vector<Vertex> vertices;             // Create a vector to hold the vertices of the oriented bounding box
+                glm::vec3           currentColor = BLACK; // Color for the oriented bounding box
+                vertices.reserve(4);                      // Reserve space for the vertices
+
+                // Add the four corners of the oriented bounding box
+                vertices.push_back({glm::vec3{orientedBox[0].first, orientedBox[0].second, 0.f}, currentColor, {}}); // Bottom-left corner
+                vertices.push_back({glm::vec3{orientedBox[1].first, orientedBox[1].second, 0.f}, currentColor, {}}); // Bottom-right corner
+                vertices.push_back({glm::vec3{orientedBox[1].first, orientedBox[1].second, 0.f}, currentColor, {}}); // Bottom-right corner
+                vertices.push_back({glm::vec3{orientedBox[2].first, orientedBox[2].second, 0.f}, currentColor, {}}); // Top-right corner
+                vertices.push_back({glm::vec3{orientedBox[2].first, orientedBox[2].second, 0.f}, currentColor, {}}); // Top-right corner
+                vertices.push_back({glm::vec3{orientedBox[3].first, orientedBox[3].second, 0.f}, currentColor, {}}); // Top-left corner
+                vertices.push_back({glm::vec3{orientedBox[3].first, orientedBox[3].second, 0.f}, currentColor, {}}); // Top-left corner
+                vertices.push_back({glm::vec3{orientedBox[0].first, orientedBox[0].second, 0.f}, currentColor, {}}); // Bottom-left corner
+
+                GLobject drawOrientedBox(vertices, GL_LINES, false); // Draw the oriented bounding box using the GLobject class
+                drawOrientedBox.draw();                              // Draw the oriented bounding box
             }
         }
 

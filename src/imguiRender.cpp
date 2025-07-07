@@ -53,6 +53,7 @@ void Render::render2D()
         graphe.useCentroid       = false; // Toggle the use of centroid calculation
         graphe.useSquare         = true;  // Toggle the use of
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
     }
     if (ImGui::Button("Switch to Welzl Circle"))
     {
@@ -62,6 +63,7 @@ void Render::render2D()
         graphe.useCentroid       = false; // Toggle the use of centroid calculation
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
     }
     if (ImGui::Button("Switch to Centroid"))
     {
@@ -71,6 +73,7 @@ void Render::render2D()
         graphe.useCentroid       = true;  // Toggle the use of centroid calculation
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
     }
     if (ImGui::Button("Switch to k-nearest"))
     {
@@ -80,6 +83,17 @@ void Render::render2D()
         graphe.useCentroid       = false; // Toggle the use of centroid calculation
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = true;  // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+    }
+    if (ImGui::Button("Switch to oriented bounding box"))
+    {
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = false; // Toggle the use of centroid calculation
+        graphe.useSquare         = false; // Toggle the use of square calculation
+        graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = true;  // Toggle the use of oriented bounding box
     }
 
     ImGui::Text("Center of Point 0 with Welzl Circle : ");
@@ -116,6 +130,11 @@ void Render::render2D()
     if (ImGui::Button("Show Circles"))
     {
         drawCircles = !drawCircles; // Toggle the drawing of circles
+    }
+
+    if (ImGui::Button("Show Oriented Box"))
+    {
+        drawOrientedBox = !drawOrientedBox; // Toggle the drawing of oriented bounding boxes
     }
 
     ImGui::SliderFloat("Delta for centralisation", &graphe.step, 0.f, 1.f);
@@ -169,7 +188,7 @@ void Render::render2D()
 
     if (ImGui::Button("Save Energies") && itrCentralisation == 0)
     {
-        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0CentroidVoro.csv"}); // Save the energies to a CSV file
+        save_energies_to_csv(graphe.energies, ASSETS_PATH + std::string{"PointExemple/pointListV0OrientedSquare.csv"}); // Save the energies to a CSV file
         ImGui::Text("Energies saved to CVTenergie.csv");
     }
 

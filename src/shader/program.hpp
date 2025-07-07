@@ -1,7 +1,7 @@
 #pragma once
 
 #define GLFW_INCLUDE_NONE
-#include "Shader.hpp"
+#include "shader.hpp"
 
 class Program {
 public:

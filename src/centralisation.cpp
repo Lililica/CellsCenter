@@ -5,6 +5,7 @@
 #include <iostream>
 #include <numbers>
 #include "LlyodCentralisation.hpp"
+#include "boundingBox.hpp"
 #include "utils.hpp"
 
 using Point = std::pair<float, float>; // Représente un point (x, y)
@@ -144,7 +145,8 @@ void Graphe::centralisation()
     // }
     // else
     // {
-    allCircles.clear(); // Clear the list of circles before centralisation
+    allCircles.clear();       // Clear the list of circles before centralisation
+    allOrientedBoxes.clear(); // Clear the list of oriented boxes before centralisation
 
     if (kNearest)
     {
@@ -259,6 +261,35 @@ void Graphe::centralisation()
             sortPointsCCW(neighbors);      // Sort neighbors in counter-clockwise order around the current point
 
             centroid = computeCentroid(neighbors);
+        }
+        else if (useOrientedBox)
+        {
+            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
+
+            // onvert neighbors to Point2D for oriented bounding box computation
+            std::vector<Point2D> neighbors2D;
+            neighbors2D.reserve(neighbors.size());
+            for (const auto& neighbor : neighbors)
+            {
+                neighbors2D.emplace_back(neighbor.first, neighbor.second);
+            }
+
+            std::vector<Point2D> orientedBox = computeOrientedBoundingBox(neighbors2D);
+
+            // Make the midpoint of the oriented bounding box the centroid
+            centroid = {
+                (orientedBox[0].x() + orientedBox[1].x() + orientedBox[2].x() + orientedBox[3].x()) / 4.0f,
+                (orientedBox[0].y() + orientedBox[1].y() + orientedBox[2].y() + orientedBox[3].y()) / 4.0f
+            };
+
+            // Store the oriented bounding box for later use
+            std::array<Point, 4> orientedBoxPoints = {
+                Point{orientedBox[0].x(), orientedBox[0].y()},
+                Point{orientedBox[1].x(), orientedBox[1].y()},
+                Point{orientedBox[2].x(), orientedBox[2].y()},
+                Point{orientedBox[3].x(), orientedBox[3].y()}
+            };
+            allOrientedBoxes.emplace_back(orientedBoxPoints); // Store the oriented bounding box for later use
         }
         else
         {
