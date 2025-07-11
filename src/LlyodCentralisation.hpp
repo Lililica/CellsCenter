@@ -23,6 +23,7 @@ struct Graphe {
     bool useSquare      = false; // Flag to indicate whether to use the square of the distance for energy calculation
     bool kNearest       = false; // Flag to indicate whether to use the k-nearest neighbors for energy calculation
     bool useOrientedBox = false; // Flag to control whether to use the oriented bounding box method
+    bool useMean        = false; // Flag to control whether to use the mean for energy calculation
 
     Point welzlCenterOf0;    // Center of the circle calculated by Welzl's algorithm
     Point centroidCenterOf0; // Center of the centroid calculated from the points

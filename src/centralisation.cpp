@@ -291,6 +291,12 @@ void Graphe::centralisation()
             };
             allOrientedBoxes.emplace_back(orientedBoxPoints); // Store the oriented bounding box for later use
         }
+        else if (useMean)
+        {
+            neighbors = nearCellulePoints[i]; // Get the neighbors from the nearCellulePoints
+
+            centroid = computeCenter(neighbors);
+        }
         else
         {
             std::cerr << "No valid method selected for centralisation. Skipping point (" << pointList[i].first << ", " << pointList[i].second << ").\n";

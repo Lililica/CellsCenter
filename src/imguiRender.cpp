@@ -16,7 +16,8 @@ void Render::render2D()
 
     if (ImGui::Button("Reset Camera"))
     {
-        camera.set_to(glm::vec3(20.f, 0.f, 0.f)); // Reset camera to a position looking at the origin
+        camera.set_to(glm::vec3(10.f, 0.f, 0.f)); // Reset camera to a position looking at the origin
+        camera.reset_CameraOrigin();              // Reset the camera origin to (0, 0)
     }
 
     if (ImGui::Button("Apply Centralisation"))
@@ -54,6 +55,7 @@ void Render::render2D()
         graphe.useSquare         = true;  // Toggle the use of
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
         graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+        graphe.useMean           = false; // Toggle the use of mean calculation
     }
     if (ImGui::Button("Switch to Welzl Circle"))
     {
@@ -64,6 +66,7 @@ void Render::render2D()
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
         graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+        graphe.useMean           = false; // Toggle the use of mean calculation
     }
     if (ImGui::Button("Switch to Centroid"))
     {
@@ -74,6 +77,7 @@ void Render::render2D()
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
         graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+        graphe.useMean           = false; // Toggle the use of mean calculation
     }
     if (ImGui::Button("Switch to k-nearest"))
     {
@@ -84,6 +88,7 @@ void Render::render2D()
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = true;  // Toggle the use of k-nearest neighbors
         graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+        graphe.useMean           = false; // Toggle the use of mean calculation
     }
     if (ImGui::Button("Switch to oriented bounding box"))
     {
@@ -94,6 +99,18 @@ void Render::render2D()
         graphe.useSquare         = false; // Toggle the use of square calculation
         graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
         graphe.useOrientedBox    = true;  // Toggle the use of oriented bounding box
+        graphe.useMean           = false; // Toggle the use of mean calculation
+    }
+    if (ImGui::Button("Switch to mean"))
+    {
+        graphe.nbrCentralisation = 0;     // Reset the number of centralisations
+        itrCentralisation        = 0;     // Reset the centralisation counter
+        graphe.useWelzl          = false; // Toggle the use of Welzl's algorithm
+        graphe.useCentroid       = false; // Toggle the use of centroid calculation
+        graphe.useSquare         = false; // Toggle the use of square calculation
+        graphe.kNearest          = false; // Toggle the use of k-nearest neighbors
+        graphe.useOrientedBox    = false; // Toggle the use of oriented bounding box
+        graphe.useMean           = true;  // Toggle the use of mean calculation
     }
 
     ImGui::Text("Center of Point 0 with Welzl Circle : ");

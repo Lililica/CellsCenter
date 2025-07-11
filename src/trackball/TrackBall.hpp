@@ -48,12 +48,17 @@ public:
         m_vCameraOrigin.y -= dist;
     }
 
+    void reset_CameraOrigin()
+    {
+        m_vCameraOrigin = glm::vec2(0.f, 0.f);
+    }
+
     glm::mat4 getViewMatrix() const;
     glm::vec3 getPosition() const;
     void      set_to(glm::vec3 pos)
     {
-        m_fDistance = glm::length(pos);
-        m_fAngleX   = glm::degrees(asin(pos.y / m_fDistance));
-        m_fAngleY   = glm::degrees(atan2(pos.x, pos.z));
+        m_fDistance = pos.x;
+        m_fAngleX   = pos.y;
+        m_fAngleY   = pos.z;
     };
 };

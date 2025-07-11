@@ -360,8 +360,6 @@ int main()
             draw_ball(render.getCamera(), triangleObjectVoro, program, window); // Draw the center sphere at each circumcenter
         }
 
-        // draw_ball(render.getCamera(), triangleObjectVoro, program, window); // Draw the center sphere at each circumcenter
-
         if (render.nbrPointsChanged)
         {
             render.getGraph()->pointList.clear();                               // Clear the previous points
@@ -394,7 +392,7 @@ int main()
                                                                                                                         // Generate points on the boundary of the circle
             }
 
-            render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
+            render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
 
             v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
@@ -408,9 +406,9 @@ int main()
             v.clear(); // Clear the vertex vector for circumcenters
             for (int i = 0; i < render.getGraph()->nearCellulePointsList.size(); ++i)
             {
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, GREEN, {}}); // Add circumcenter vertices
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, GREEN, {}});
-                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle2, 0.f}, GREEN, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first - factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first + factorTriangle2, render.getGraph()->nearCellulePointsList[i].second - factorTriangle2, 0.f}, BLACK, {}});
+                v.push_back({glm::vec3{render.getGraph()->nearCellulePointsList[i].first, render.getGraph()->nearCellulePointsList[i].second + factorTriangle2, 0.f}, BLACK, {}}); // Add circumcenter vertices
             }
             triangleObjectVoro.set_vertex_data(v); // Set the vertex data for the circumcenter object
 
