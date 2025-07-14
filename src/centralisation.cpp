@@ -244,14 +244,13 @@ void Graphe::centralisation()
         else if (useSquare)
         {
             neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
-            sortPointsCCW(neighbors);       // Sort neighbors in counter-clockwise order around the current point
 
             centroid = squareCenter(neighbors);
         }
         else if (useCentroid)
         {
-            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
-            sortPointsCCW(neighbors);       // Sort neighbors in counter-clockwise order around the current point
+            neighbors = nearCellulePoints[i]; // Get the neighbors from the nearCellulePoints
+            sortPointsCCW(neighbors);         // Sort neighbors in counter-clockwise order around the current point
 
             centroid = computeCentroid(neighbors);
         }

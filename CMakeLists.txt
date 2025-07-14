@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME})
 
 # Choose your C++ version
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CMAKE_SOURCE_DIR=\\"${CMAKE_SOURCE_DIR}\\") # For M_PI
 
 # Enable many good warnings.
 # /WX and -Werror enable "warnings as errors": This means that your code won't compile if you have any warning.
@@ -26,6 +27,20 @@ if(MSVC)
 else()
     # target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra -Wpedantic -pedantic-errors -Wimplicit-fallthrough)
 endif()
+
+# Add Eigen3 library
+include(FetchContent)
+
+
+FetchContent_Declare(
+    eigen
+    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+    GIT_TAG 3.4.0
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(Eigen)
+target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 
 # Set the folder where the executable is created
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -68,36 +83,39 @@ else()
 endif()
 
 
-include(ExternalProject)
 
-set(EIGEN_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-install/")
+# include(ExternalProject)
 
-ExternalProject_Add(
-    eigen
-    URL  https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
-    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-src"
-    BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-build"
-    INSTALL_DIR "${EIGEN_INSTALL_DIR}"
-    CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-    -DCMAKE_BUILD_TYPE=Release
-)
 
-file(MAKE_DIRECTORY ${EIGEN_INSTALL_DIR}/include)  # avoid race condition
+# set(EIGEN_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-install")
 
-add_library(eigenlib INTERFACE IMPORTED GLOBAL)
-add_dependencies(eigenlib eigen)
-target_compile_features(eigenlib INTERFACE cxx_std_14)
+# ExternalProject_Add(
+#     eigen
+#     DOWNLOAD_EXTRACT_TIMESTAMP ON
+#     URL  https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+#     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-src"
+#     BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen/eigen-build"
+#     INSTALL_DIR "${EIGEN_INSTALL_DIR}"
+#     CMAKE_ARGS
+#     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+#     -DCMAKE_BUILD_TYPE=Release
+# )
 
-set_target_properties(eigenlib PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${EIGEN_INSTALL_DIR}/include/eigen3
-)
+# file(MAKE_DIRECTORY ${EIGEN_INSTALL_DIR}/include)  # avoid race condition
 
-# Add eigen as a dependency to your main project
-add_dependencies(${PROJECT_NAME} eigenlib)
-# Link eigenlib to your main project
-target_link_libraries(${PROJECT_NAME} PRIVATE eigenlib)
-# Add the include directory for eigen
-target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN_INSTALL_DIR}/include/eigen3)
+# add_library(eigenlib INTERFACE IMPORTED GLOBAL)
+# add_dependencies(eigenlib eigen)
+# target_compile_features(eigenlib INTERFACE cxx_std_14)
+
+# set_target_properties(eigenlib PROPERTIES
+#   INTERFACE_INCLUDE_DIRECTORIES ${EIGEN_INSTALL_DIR}/include/eigen3
+# )
+
+# # Add eigen as a dependency to your main project
+# add_dependencies(${PROJECT_NAME} eigenlib)
+# # Link eigenlib to your main project
+# target_link_libraries(${PROJECT_NAME} PRIVATE eigenlib)
+# # Add the include directory for eigen
+# target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN_INSTALL_DIR}/include/eigen3)
 
 
