@@ -420,7 +420,8 @@ int main()
 
         if (render.get_itrCentralisation() > 0)
         {
-            render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+            // render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+            render.getGraph()->flipDelaunayTriangles(); // Flip the Delaunay triangles to ensure they are valid
 
             render.getGraph()->centralisation(); // Centralize the points in the graph
 

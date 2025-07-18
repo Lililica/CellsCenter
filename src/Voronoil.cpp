@@ -3,19 +3,21 @@
 #include "LlyodCentralisation.hpp"
 #include "utils.hpp"
 
-void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<dt::Triangle<double>>& triangles)
+void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<Triangle>& triangles)
 {
     for (const auto& triangle : triangles)
     {
-        std::array<std::array<float, 3>, 3> matForX{{{1.f, static_cast<float>(triangle.a->y), static_cast<float>((std::pow(triangle.a->y, 2) + std::pow(triangle.a->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.b->y), static_cast<float>((std::pow(triangle.b->y, 2) + std::pow(triangle.b->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.c->y), static_cast<float>((std::pow(triangle.c->y, 2) + std::pow(triangle.c->x, 2)) / 2.)}}};
+        std::array<std::array<float, 3>, 3> matForX{{{1.f, (triangle[0].second), static_cast<float>(((std::pow(triangle[0].second, 2) + std::pow(triangle[0].first, 2)) / 2.))},   // L1
+                                                     {1.f, (triangle[1].second), static_cast<float>(((std::pow(triangle[1].second, 2) + std::pow(triangle[1].first, 2)) / 2.))},   // L2
+                                                     {1.f, (triangle[2].second), static_cast<float>(((std::pow(triangle[2].second, 2) + std::pow(triangle[2].first, 2)) / 2.))}}}; // L3
 
         auto x = static_cast<float>(-determinant3x3(matForX));
 
-        std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(triangle.a->x), static_cast<float>((std::pow(triangle.a->y, 2) + std::pow(triangle.a->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.b->x), static_cast<float>((std::pow(triangle.b->y, 2) + std::pow(triangle.b->x, 2)) / 2.)}, {1.f, static_cast<float>(triangle.c->x), static_cast<float>((std::pow(triangle.c->y, 2) + std::pow(triangle.c->x, 2)) / 2.)}}};
+        std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(triangle[0].first), static_cast<float>((std::pow(triangle[0].second, 2) + std::pow(triangle[0].first, 2)) / 2.)}, {1.f, static_cast<float>(triangle[1].first), static_cast<float>((std::pow(triangle[1].second, 2) + std::pow(triangle[1].first, 2)) / 2.)}, {1.f, static_cast<float>(triangle[2].first), static_cast<float>((std::pow(triangle[2].second, 2) + std::pow(triangle[2].first, 2)) / 2.)}}};
 
         auto y = static_cast<float>(determinant3x3(matForY));
 
-        std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(triangle.a->x), static_cast<float>(triangle.a->y)}, {1.f, static_cast<float>(triangle.b->x), static_cast<float>(triangle.b->y)}, {1.f, static_cast<float>(triangle.c->x), static_cast<float>(triangle.c->y)}}};
+        std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(triangle[0].first), static_cast<float>(triangle[0].second)}, {1.f, static_cast<float>(triangle[1].first), static_cast<float>(triangle[1].second)}, {1.f, static_cast<float>(triangle[2].first), static_cast<float>(triangle[2].second)}}};
 
         auto w = static_cast<float>(determinant3x3(matForW));
 
@@ -26,9 +28,9 @@ void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<dt::Triangle
         //           << triangle.c->x << ", " << triangle.c->y << ") is at ("
         //           << center.first << ", " << center.second << ")\n";
 
-        int aIdx = getIndexFromPoint(Point(triangle.a->x, triangle.a->y)); // Get the index of the point in the graph
-        int bIdx = getIndexFromPoint(Point(triangle.b->x, triangle.b->y)); // Get the index of the point in the graph
-        int cIdx = getIndexFromPoint(Point(triangle.c->x, triangle.c->y)); // Get the index of the point in the graph
+        int aIdx = getIndexFromPoint(Point(triangle[0].first, triangle[0].second)); // Get the index of the point in the graph
+        int bIdx = getIndexFromPoint(Point(triangle[1].first, triangle[1].second)); // Get the index of the point in the graph
+        int cIdx = getIndexFromPoint(Point(triangle[2].first, triangle[2].second)); // Get the index of the point in the graph
 
         if (aIdx == -1 || bIdx == -1 || cIdx == -1)
         {

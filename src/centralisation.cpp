@@ -347,7 +347,7 @@ void Graphe::doDelaunayAndCalculateCenters()
     nearCellulePoints.resize(pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
     kNearestPoints.clear();                     // Clear the kNearestPoints vector to prepare for new data
 
-    calculateCenterFromDelaunayTriangles(triangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
+    calculateCenterFromDelaunayTriangles(trianglesPoints); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
 
     // Determine if an original point is a border point
 
@@ -358,14 +358,110 @@ void Graphe::doDelaunayAndCalculateCenters()
     triesNearCellulePoints();
 }
 
-// void Graphe::updateCenterExample()
-// {
-//     std::vector<Point> neighbors = nearCellulePoints[0]; // Get the neighbors of the current point
+void Graphe::flipDelaunayTriangles()
+{
+    const auto start = std::chrono::high_resolution_clock::now();
 
-//     sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
-//                               // Welzl
-//     std::vector<Point> boundaryPoints;
-//     welzlCenterOf0 = welzl(neighbors, boundaryPoints).first;
-//     // Centrois
-//     centroidCenterOf0 = computeCentroid(neighbors);
-// }
+    double timeGetIdx   = 0.0; // Initialize timeGetIndex to 0
+    double timeFindSame = 0.0; // Initialize timeFindSame to 0
+    double timeFlip     = 0.0; // Initialize timeFlip to 0
+
+    nbrFlips = 0; // Reset the number of flips performed during the Delaunay triangulation
+    for (int i = 0; i < trianglesPoints.size(); ++i)
+    {
+        auto start2 = std::chrono::high_resolution_clock::now();
+
+        Triangle& triangle = trianglesPoints[i];
+        Point     a        = triangle[0];
+        int       idxA     = idxTriangles[i][0]; // Get the index of point A in the triangle
+        Point     b        = triangle[1];
+        int       idxB     = idxTriangles[i][1]; // Get the index of point B in the triangle
+        Point     c        = triangle[2];
+        int       idxC     = idxTriangles[i][2]; // Get the index of point C in the triangle
+        Circle    circle   = triangleCircles[i];
+
+        auto end2 = std::chrono::high_resolution_clock::now();
+        timeGetIdx += std::chrono::duration<double>(end2 - start2).count(); // Accumulate the time taken to get indices
+
+        if (idxA == -1 || idxB == -1 || idxC == -1)
+        {
+            continue; // Skip this triangle if any point is not found
+        }
+
+        start2 = std::chrono::high_resolution_clock::now();
+
+        std::vector<Point> adjacentPointsAB;
+        for (const auto& neighbor : pointsAdjacents[idxA])
+        {
+            std::vector<Point> adjacentPointsB = pointsAdjacents[idxB];                                                                         // Get the adjacent points of point B
+            if (neighbor != b && neighbor != c && std::find(adjacentPointsB.begin(), adjacentPointsB.end(), neighbor) == adjacentPointsB.end()) // Exclude points b and c
+            {
+                adjacentPointsAB.push_back(neighbor);
+            }
+        }
+
+        std::vector<Point> adjacentPointsBC;
+        for (const auto& neighbor : pointsAdjacents[idxB])
+        {
+            std::vector<Point> adjacentPointsC = pointsAdjacents[idxC];                                                                         // Get the adjacent points of point C
+            if (neighbor != c && neighbor != a && std::find(adjacentPointsC.begin(), adjacentPointsC.end(), neighbor) == adjacentPointsC.end()) // Exclude points c and a
+            {
+                adjacentPointsBC.push_back(neighbor);
+            }
+        }
+
+        std::vector<Point> adjacentPointsCA;
+        for (const auto& neighbor : pointsAdjacents[idxC])
+        {
+            std::vector<Point> adjacentPointsA = pointsAdjacents[idxA];                                                                         // Get the adjacent points of point A
+            if (neighbor != a && neighbor != b && std::find(adjacentPointsA.begin(), adjacentPointsA.end(), neighbor) == adjacentPointsA.end()) // Exclude points a and b
+            {
+                adjacentPointsCA.push_back(neighbor);
+            }
+        }
+
+        end2 = std::chrono::high_resolution_clock::now();
+        timeFindSame += std::chrono::duration<double>(end2 - start2).count();
+
+        start2 = std::chrono::high_resolution_clock::now();
+
+        // Check if the circumcircle contains any of the adjacent points
+        for (const auto& neighbor : adjacentPointsAB)
+        {
+            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
+            {
+                std::swap(triangle[0], triangle[1]); // Swap points A and B
+                nbrFlips++;                          // Increment the number of flips performed
+            }
+        }
+
+        for (const auto& neighbor : adjacentPointsBC)
+        {
+            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
+            {
+                nbrFlips++; // Increment the number of flips performed
+            }
+        }
+
+        for (const auto& neighbor : adjacentPointsCA)
+        {
+            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
+            {
+                nbrFlips++; // Increment the number of flips performed
+            }
+        }
+
+        end2 = std::chrono::high_resolution_clock::now();
+        timeFlip += std::chrono::duration<double>(end2 - start2).count();
+    }
+
+    const auto                          end  = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<double> diff = end - start;
+    std::cout << "Delaunay search flip completed in " << diff.count() << " seconds.\n";
+
+    std::cout << "Time taken to get indices: " << timeGetIdx << " seconds.\n";
+    std::cout << "Time taken to find adjacent points: " << timeFindSame << " seconds.\n";
+    std::cout << "Time taken to flip triangles: " << timeFlip << " seconds.\n";
+
+    std::cout << "Number of flips performed: " << nbrFlips << "\n";
+}

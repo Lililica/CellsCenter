@@ -5,10 +5,13 @@
 #include "Delaunay/include/delaunay.h"
 #include "Delaunay/include/triangle.h"
 #include "Delaunay/include/vector2.h"
+#include "utils.hpp"
 
 struct Graphe {
     using Point     = std::pair<float, float>; // Représente un point (x, y)
     using Adjacency = std::pair<Point, Point>; // Représente une paire d'indices de points adjacents
+    using Circle    = std::pair<Point, float>; // Représente un cercle avec son centre et son rayon
+    using Triangle  = std::array<Point, 3>;    // Représente un triangle avec ses trois sommets
 
     float radius = 10.f; // Rayon de la zone d'influence des points
 
@@ -40,10 +43,13 @@ struct Graphe {
     std::vector<int> idxPointBorder;            // Indices of the points that are considered border points
     bool             hasDetectedBorder = false; // Flag to indicate if border points have been detected
 
-    std::vector<std::array<Point, 3>> trianglesPoints; // List of triangles formed by the near cell points
+    std::vector<Triangle>           trianglesPoints; // List of triangles formed by the near cell points
+    std::vector<std::array<int, 3>> idxTriangles;    // List of indices of points in triangles
+    std::vector<Circle>             triangleCircles; // List of circles formed by the near cell points
+    int                             nbrFlips = 0;    // Number of flips performed during the Delaunay triangulation
 
-    std::vector<std::pair<Point, float>> allCircles;
-    std::vector<std::array<Point, 4>>    allOrientedBoxes; // List of oriented bounding boxes for the points
+    std::vector<Circle>               allCircles;
+    std::vector<std::array<Point, 4>> allOrientedBoxes; // List of oriented bounding boxes for the points
 
     std::vector<double> energies; // List of energies after each iterations
 
@@ -84,7 +90,7 @@ struct Graphe {
         pointsAdjacents.resize(pointList.size()); // Resize the adjacency list to match the number of points
         for (const auto& triangle : triangles)
         {
-            trianglesPoints.emplace_back(std::array<Point, 3>{Point(triangle.a->x, triangle.a->y), Point(triangle.b->x, triangle.b->y), Point(triangle.c->x, triangle.c->y)});
+            trianglesPoints.emplace_back(Triangle{Point(triangle.a->x, triangle.a->y), Point(triangle.b->x, triangle.b->y), Point(triangle.c->x, triangle.c->y)});
             int idxA = getIndexFromPoint(trianglesPoints.back()[0]);
             int idxB = getIndexFromPoint(trianglesPoints.back()[1]);
             int idxC = getIndexFromPoint(trianglesPoints.back()[2]);
@@ -93,6 +99,8 @@ struct Graphe {
                 std::cerr << "Error: One of the triangle points is not found in the graph." << '\n';
                 continue; // Skip this triangle if any point is not found
             }
+            idxTriangles.emplace_back(std::array<int, 3>{idxA, idxB, idxC}); // Add the indices of the triangle points
+
             if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxA].end())
                 pointsAdjacents[idxA].push_back(trianglesPoints.back()[1]);
             if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[2]) == pointsAdjacents[idxA].end())
@@ -105,15 +113,21 @@ struct Graphe {
                 pointsAdjacents[idxC].push_back(trianglesPoints.back()[0]);
             if (std::find(pointsAdjacents[idxC].begin(), pointsAdjacents[idxC].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxC].end())
                 pointsAdjacents[idxC].push_back(trianglesPoints.back()[1]);
+
+            std::vector<Point> currentTriangle = {trianglesPoints.back()[0], trianglesPoints.back()[1], trianglesPoints.back()[2]};
+            std::vector<Point> boundaryPoints  = {}; // Get the boundary points for the current triangle
+            Circle             currentCircle   = welzl(currentTriangle, boundaryPoints);
+            triangleCircles.emplace_back(currentCircle); // Add the circle to the list of triangle circles
         }
     }
 
     void doDelaunayAndCalculateCenters();
+    void flipDelaunayTriangles();
 
-    void calculateCenterFromDelaunayTriangles(const std::vector<dt::Triangle<double>>& triangles);
+    void calculateCenterFromDelaunayTriangles(const std::vector<Triangle>& triangles);
 
     void findBorderPoints();
-    bool hasOtherTriangleForSegment(const std::vector<std::array<Point, 3>>& trianglesPoints, const Point& p1, const Point& p2, const Point& excluded);
+    bool hasOtherTriangleForSegment(const std::vector<Triangle>& trianglesPoints, const Point& p1, const Point& p2, const Point& excluded);
     void findBorderPoints_BROKEN_Function();
 
     float calcul_CVT_energie(const int& idxPoint);

@@ -55,7 +55,7 @@ std::pair<Point, float> getCircle(std::vector<Point>& points)
 
         return {center, radius};
     }
-    std::cerr << "Error: Invalid number of points for circle calculation." << '\n';
+    std::cerr << "Error: Invalid number of points for circle calculation. Size: " << points.size() << '\n';
     return {{0.f, 0.f}, 0.f}; // Return a default value in case of error
 }
 
