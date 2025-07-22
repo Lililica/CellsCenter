@@ -154,7 +154,7 @@ int main()
 
     std::vector<dt::Vector2<double>> points;
 
-#if 1
+#if 0
     int numberPoints = 500;
 
     std::default_random_engine             eng(std::random_device{}());
@@ -176,10 +176,12 @@ int main()
     points = {
         // Example points, replace with randomPositions if needed
         dt::Vector2<double>(0, 0),
-        dt::Vector2<double>(2, 2),
-        dt::Vector2<double>(2, -2),
-        dt::Vector2<double>(-2, -2),
-        dt::Vector2<double>(-2, 2),
+        // dt::Vector2<double>(1, 1),
+        // dt::Vector2<double>(1.5, 1),
+        dt::Vector2<double>(3, 3),
+        dt::Vector2<double>(3, -3),
+        dt::Vector2<double>(-3, -3),
+        dt::Vector2<double>(-3, 3),
         dt::Vector2<double>(2, 0),
         dt::Vector2<double>(0, 2),
         dt::Vector2<double>(-2, 0),
@@ -204,7 +206,7 @@ int main()
         render.getGraph()->pointList.emplace_back(point.x, point.y); // Convert dt::Vector2 to Point
     }
 
-    render.getGraph()->pointList = load_text_to_pointList(ASSETS_PATH + std::string{"pointExemple/pointListV0.txt"}); // Load points from a text file
+    // render.getGraph()->pointList = load_text_to_pointList(ASSETS_PATH + std::string{"pointExemple/pointListV0.txt"}); // Load points from a text file
 
     render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate circumcenters
 
@@ -271,17 +273,20 @@ int main()
 
         if (render.drawTriangles)
         {
-            std::vector<Vertex> vertices;                                    // Create a vector to hold the vertices of the triangles
-            glm::vec3           currentColor = BLUE;                         // Color for the triangles
-            vertices.reserve(render.getGraph()->trianglesPoints.size() * 3); // Reserve space
-            for (const auto& triangle : render.getGraph()->trianglesPoints)
+            std::vector<Vertex> vertices;                                 // Create a vector to hold the vertices of the triangles
+            glm::vec3           currentColor = BLUE;                      // Color for the triangles
+            vertices.reserve(render.getGraph()->idxTriangles.size() * 3); // Reserve space
+            for (const auto& triangle : render.getGraph()->idxTriangles)
             {
-                vertices.push_back({glm::vec3{triangle[0].first, triangle[0].second, 0.f}, currentColor, {}}); // Add the first vertex
-                vertices.push_back({glm::vec3{triangle[1].first, triangle[1].second, 0.f}, currentColor, {}}); // Add the second vertex
-                vertices.push_back({glm::vec3{triangle[1].first, triangle[1].second, 0.f}, currentColor, {}}); // Add the second vertex
-                vertices.push_back({glm::vec3{triangle[2].first, triangle[2].second, 0.f}, currentColor, {}}); // Add the third vertex
-                vertices.push_back({glm::vec3{triangle[2].first, triangle[2].second, 0.f}, currentColor, {}}); // Add the third vertex
-                vertices.push_back({glm::vec3{triangle[0].first, triangle[0].second, 0.f}, currentColor, {}}); // Add the first vertex
+                Point p1 = render.getGraph()->pointList[triangle[0]];                        // Get the first point of the triangle
+                Point p2 = render.getGraph()->pointList[triangle[1]];                        // Get the second point of the triangle
+                Point p3 = render.getGraph()->pointList[triangle[2]];                        // Get the third point of the triangle
+                vertices.push_back({glm::vec3{p1.first, p1.second, 0.f}, currentColor, {}}); // Add the first vertex
+                vertices.push_back({glm::vec3{p2.first, p2.second, 0.f}, currentColor, {}}); // Add the second vertex
+                vertices.push_back({glm::vec3{p2.first, p2.second, 0.f}, currentColor, {}}); // Add the second vertex
+                vertices.push_back({glm::vec3{p3.first, p3.second, 0.f}, currentColor, {}}); // Add the third vertex
+                vertices.push_back({glm::vec3{p3.first, p3.second, 0.f}, currentColor, {}}); // Add the third vertex
+                vertices.push_back({glm::vec3{p1.first, p1.second, 0.f}, currentColor, {}}); // Add the first vertex
             }
 
             GLobject drawTriangles(vertices, GL_LINES, false); // Draw the triangles using the GLobject class
@@ -307,12 +312,12 @@ int main()
 
         if (render.drawCircles)
         {
-            for (const auto& circle : render.getGraph()->allCircles) // Iterate through each circle
+            for (const auto& circle : render.getGraph()->triangleCircles) // Iterate through each circle
             {
-                std::vector<Vertex> vertices;                           // Create a vector to hold the vertices of the circle
-                glm::vec3           currentColor = BLACK;               // Color for the circle
-                vertices.reserve(render.getGraph()->allCircles.size()); // Reserve space for the circle vertices
-                int nbrIterations = 50;                                 // Number of iterations for drawing the circle
+                std::vector<Vertex> vertices;                                // Create a vector to hold the vertices of the circle
+                glm::vec3           currentColor = BLACK;                    // Color for the circle
+                vertices.reserve(render.getGraph()->triangleCircles.size()); // Reserve space for the circle vertices
+                int nbrIterations = 50;                                      // Number of iterations for drawing the circle
 
                 vertices.push_back({glm::vec3{circle.first.first + circle.second, circle.first.second, 0.f}, currentColor, {}}); // Add the vertex to the circle
 
@@ -420,10 +425,11 @@ int main()
 
         if (render.get_itrCentralisation() > 0)
         {
-            // render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
-            render.getGraph()->flipDelaunayTriangles(); // Flip the Delaunay triangles to ensure they are valid
-
             render.getGraph()->centralisation(); // Centralize the points in the graph
+            if (render.trueDelaunay)
+                render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+            else if (render.flipDelaunay)
+                render.getGraph()->doDelaunayFlipVersion(); // Flip the Delaunay triangles to ensure they are valid
 
             v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)

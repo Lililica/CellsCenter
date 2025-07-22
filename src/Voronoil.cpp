@@ -3,21 +3,21 @@
 #include "LlyodCentralisation.hpp"
 #include "utils.hpp"
 
-void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<Triangle>& triangles)
+void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<std::array<int, 3>>& triangles)
 {
     for (const auto& triangle : triangles)
     {
-        std::array<std::array<float, 3>, 3> matForX{{{1.f, (triangle[0].second), static_cast<float>(((std::pow(triangle[0].second, 2) + std::pow(triangle[0].first, 2)) / 2.))},   // L1
-                                                     {1.f, (triangle[1].second), static_cast<float>(((std::pow(triangle[1].second, 2) + std::pow(triangle[1].first, 2)) / 2.))},   // L2
-                                                     {1.f, (triangle[2].second), static_cast<float>(((std::pow(triangle[2].second, 2) + std::pow(triangle[2].first, 2)) / 2.))}}}; // L3
+        std::array<std::array<float, 3>, 3> matForX{{{1.f, (pointList[triangle[0]].second), static_cast<float>(((std::pow(pointList[triangle[0]].second, 2) + std::pow(pointList[triangle[0]].first, 2)) / 2.))},   // L1
+                                                     {1.f, (pointList[triangle[1]].second), static_cast<float>(((std::pow(pointList[triangle[1]].second, 2) + std::pow(pointList[triangle[1]].first, 2)) / 2.))},   // L2
+                                                     {1.f, (pointList[triangle[2]].second), static_cast<float>(((std::pow(pointList[triangle[2]].second, 2) + std::pow(pointList[triangle[2]].first, 2)) / 2.))}}}; // L3
 
         auto x = static_cast<float>(-determinant3x3(matForX));
 
-        std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(triangle[0].first), static_cast<float>((std::pow(triangle[0].second, 2) + std::pow(triangle[0].first, 2)) / 2.)}, {1.f, static_cast<float>(triangle[1].first), static_cast<float>((std::pow(triangle[1].second, 2) + std::pow(triangle[1].first, 2)) / 2.)}, {1.f, static_cast<float>(triangle[2].first), static_cast<float>((std::pow(triangle[2].second, 2) + std::pow(triangle[2].first, 2)) / 2.)}}};
+        std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(pointList[triangle[0]].first), static_cast<float>((std::pow(pointList[triangle[0]].second, 2) + std::pow(pointList[triangle[0]].first, 2)) / 2.)}, {1.f, static_cast<float>(pointList[triangle[1]].first), static_cast<float>((std::pow(pointList[triangle[1]].second, 2) + std::pow(pointList[triangle[1]].first, 2)) / 2.)}, {1.f, static_cast<float>(pointList[triangle[2]].first), static_cast<float>((std::pow(pointList[triangle[2]].second, 2) + std::pow(pointList[triangle[2]].first, 2)) / 2.)}}};
 
         auto y = static_cast<float>(determinant3x3(matForY));
 
-        std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(triangle[0].first), static_cast<float>(triangle[0].second)}, {1.f, static_cast<float>(triangle[1].first), static_cast<float>(triangle[1].second)}, {1.f, static_cast<float>(triangle[2].first), static_cast<float>(triangle[2].second)}}};
+        std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(pointList[triangle[0]].first), static_cast<float>(pointList[triangle[0]].second)}, {1.f, static_cast<float>(pointList[triangle[1]].first), static_cast<float>(pointList[triangle[1]].second)}, {1.f, static_cast<float>(pointList[triangle[2]].first), static_cast<float>(pointList[triangle[2]].second)}}};
 
         auto w = static_cast<float>(determinant3x3(matForW));
 
@@ -28,9 +28,9 @@ void Graphe::calculateCenterFromDelaunayTriangles(const std::vector<Triangle>& t
         //           << triangle.c->x << ", " << triangle.c->y << ") is at ("
         //           << center.first << ", " << center.second << ")\n";
 
-        int aIdx = getIndexFromPoint(Point(triangle[0].first, triangle[0].second)); // Get the index of the point in the graph
-        int bIdx = getIndexFromPoint(Point(triangle[1].first, triangle[1].second)); // Get the index of the point in the graph
-        int cIdx = getIndexFromPoint(Point(triangle[2].first, triangle[2].second)); // Get the index of the point in the graph
+        int aIdx = triangle[0]; // Get the index of the point in the graph
+        int bIdx = triangle[1]; // Get the index of the point in the graph
+        int cIdx = triangle[2]; // Get the index of the point in the graph
 
         if (aIdx == -1 || bIdx == -1 || cIdx == -1)
         {

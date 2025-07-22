@@ -71,8 +71,10 @@ Point squareCenter(const std::vector<Point>& points)
     }
 
     // Calculate the center of the square formed by the points
-    float minX = points[0].first, maxX = points[0].first;
-    float minY = points[0].second, maxY = points[0].second;
+    float minX = points[0].first;
+    float maxX = points[0].first;
+    float minY = points[0].second;
+    float maxY = points[0].second;
 
     for (const auto& p : points)
     {
@@ -88,63 +90,6 @@ Point squareCenter(const std::vector<Point>& points)
 
 void Graphe::centralisation()
 {
-    // std::cout << "Centralisation of points in the graph...\n";
-
-    // if (!hasDetectedBorder)
-    // {
-    //     std::cout << "Border Center Points :\n";
-    //     for (auto& center : celluleBorder)
-    //     {
-    //         std::cout << "Center: (" << center.first << ", " << center.second << ")\n";
-    //     }
-
-    //     for (int i = 0; i < pointList.size(); ++i)
-    //     {
-    //         Point              currentPoint = pointList[i];         // Get the current point from the graph
-    //         std::vector<Point> neighbors    = nearCellulePoints[i]; // Get the neighbors of the current point
-
-    //         std::cout << "------ Processing point (" << currentPoint.first << ", " << currentPoint.second << ") ------\n";
-    //         for (auto& neighbor : neighbors)
-    //         {
-    //             std::cout << "Neighbor: (" << neighbor.first << ", " << neighbor.second << ")\n";
-    //         }
-
-    //         if (neighbors.empty())
-    //         {
-    //             std::cerr << "No neighbors found for point (" << currentPoint.first << ", " << currentPoint.second << "). Skipping centralisation.\n";
-    //             continue; // Skip if no neighbors are found
-    //         }
-
-    //         if (neighbors.size() < 3)
-    //         {
-    //             std::cerr << "Not enough neighbors for point (" << currentPoint.first << ", " << currentPoint.second << "). It's a border point.\n";
-    //             idxPointBorder.emplace_back(i); // Add the current point to the border points if it has no neighbors
-    //             continue;                       // Skip if there are not enough neighbors to form a polygon
-    //         }
-
-    //         int compteurOfBorderNeighbors = 0; // Counter for border neighbors
-    //         for (auto& neighbor : neighbors)
-    //         {
-    //             if (std::find(celluleBorder.begin(), celluleBorder.end(), neighbor) != celluleBorder.end())
-    //                 compteurOfBorderNeighbors++; // Increment the counter if the neighbor is a border point
-    //         }
-
-    //         if (compteurOfBorderNeighbors == 2)
-    //         {
-    //             std::cerr << "Point (" << currentPoint.first << ", " << currentPoint.second << ") has " << compteurOfBorderNeighbors
-    //                       << " border neighbors. It's a border point.\n";
-    //             idxPointBorder.emplace_back(i); // Add the current point to the border points if it has no neighbors
-    //             continue;                       // Skip if there are border neighbors
-    //         }
-
-    //         sortPointsCCW(neighbors); // Sort neighbors in counter-clockwise order around the current point
-
-    //         pointList[i] = computeCentroid(neighbors); // Update the current point to the centroid
-    //     }
-    //     hasDetectedBorder = true; // Set the flag to indicate that border points have been detected
-    // }
-    // else
-    // {
     allCircles.clear();       // Clear the list of circles before centralisation
     allOrientedBoxes.clear(); // Clear the list of oriented boxes before centralisation
 
@@ -198,7 +143,12 @@ void Graphe::centralisation()
 
         if (useWelzl)
         {
-            neighbors = pointsAdjacents[i];
+            auto neighborsIdx = pointsAdjacentsIdx[i];
+            neighbors.clear();
+            for (const auto& idx : neighborsIdx)
+            {
+                neighbors.push_back(pointList[idx]);
+            }
             sortPointsCCW(neighbors);
             std::vector<Point>      boundaryPoints;                            // Get the boundary points for the first point
             std::pair<Point, float> circle = welzl(neighbors, boundaryPoints); // Calculate the circle using Welzl's algorithm
@@ -243,7 +193,12 @@ void Graphe::centralisation()
         }
         else if (useSquare)
         {
-            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
+            auto neighborsIdx = pointsAdjacentsIdx[i];
+            neighbors.clear();
+            for (const auto& idx : neighborsIdx)
+            {
+                neighbors.push_back(pointList[idx]);
+            }
 
             centroid = squareCenter(neighbors);
         }
@@ -263,7 +218,12 @@ void Graphe::centralisation()
         }
         else if (useOrientedBox)
         {
-            neighbors = pointsAdjacents[i]; // Get the neighbors from the nearCellulePoints
+            auto neighborsIdx = pointsAdjacentsIdx[i];
+            neighbors.clear(); // Get the neighbors from the nearCellulePoints
+            for (const auto& idx : neighborsIdx)
+            {
+                neighbors.push_back(pointList[idx]);
+            }
 
             // onvert neighbors to Point2D for oriented bounding box computation
             std::vector<Point2D> neighbors2D;
@@ -275,11 +235,21 @@ void Graphe::centralisation()
 
             std::vector<Point2D> orientedBox = computeOrientedBoundingBox(neighbors2D);
 
-            // Make the midpoint of the oriented bounding box the centroid
-            centroid = {
-                (orientedBox[0].x() + orientedBox[1].x() + orientedBox[2].x() + orientedBox[3].x()) / 4.0f,
-                (orientedBox[0].y() + orientedBox[1].y() + orientedBox[2].y() + orientedBox[3].y()) / 4.0f
+            std::vector<Point> orientedBoxPointsV = {
+                Point{orientedBox[0].x(), orientedBox[0].y()},
+                Point{orientedBox[1].x(), orientedBox[1].y()},
+                Point{orientedBox[2].x(), orientedBox[2].y()},
+                Point{orientedBox[3].x(), orientedBox[3].y()}
             };
+
+            sortPointsCCW(orientedBoxPointsV);
+            centroid = computeCentroid(orientedBoxPointsV); // Calculate the centroid of the oriented bounding box
+
+            // Make the midpoint of the oriented bounding box the centroid
+            // centroid = {
+            //     (orientedBox[0].x() + orientedBox[1].x() + orientedBox[2].x() + orientedBox[3].x()) / 4.0f,
+            //     (orientedBox[0].y() + orientedBox[1].y() + orientedBox[2].y() + orientedBox[3].y()) / 4.0f
+            // };
 
             // Store the oriented bounding box for later use
             std::array<Point, 4> orientedBoxPoints = {
@@ -347,7 +317,7 @@ void Graphe::doDelaunayAndCalculateCenters()
     nearCellulePoints.resize(pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
     kNearestPoints.clear();                     // Clear the kNearestPoints vector to prepare for new data
 
-    calculateCenterFromDelaunayTriangles(trianglesPoints); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
+    calculateCenterFromDelaunayTriangles(idxTriangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
 
     // Determine if an original point is a border point
 
@@ -367,18 +337,15 @@ void Graphe::flipDelaunayTriangles()
     double timeFlip     = 0.0; // Initialize timeFlip to 0
 
     nbrFlips = 0; // Reset the number of flips performed during the Delaunay triangulation
-    for (int i = 0; i < trianglesPoints.size(); ++i)
+    for (int i = 0; i < idxTriangles.size(); ++i)
     {
         auto start2 = std::chrono::high_resolution_clock::now();
 
-        Triangle& triangle = trianglesPoints[i];
-        Point     a        = triangle[0];
-        int       idxA     = idxTriangles[i][0]; // Get the index of point A in the triangle
-        Point     b        = triangle[1];
-        int       idxB     = idxTriangles[i][1]; // Get the index of point B in the triangle
-        Point     c        = triangle[2];
-        int       idxC     = idxTriangles[i][2]; // Get the index of point C in the triangle
-        Circle    circle   = triangleCircles[i];
+        int idxA = idxTriangles[i][0]; // Get the index of point A in the triangle
+        int idxB = idxTriangles[i][1]; // Get the index of point B in the triangle
+        int idxC = idxTriangles[i][2]; // Get the index of point C in the triangle
+
+        Circle circle = triangleCircles[i];
 
         auto end2 = std::chrono::high_resolution_clock::now();
         timeGetIdx += std::chrono::duration<double>(end2 - start2).count(); // Accumulate the time taken to get indices
@@ -390,33 +357,39 @@ void Graphe::flipDelaunayTriangles()
 
         start2 = std::chrono::high_resolution_clock::now();
 
-        std::vector<Point> adjacentPointsAB;
-        for (const auto& neighbor : pointsAdjacents[idxA])
+        std::vector<int> adjacentPointsAB = {};
+        for (const int& AneighborIdx : pointsAdjacentsIdx[idxA])
         {
-            std::vector<Point> adjacentPointsB = pointsAdjacents[idxB];                                                                         // Get the adjacent points of point B
-            if (neighbor != b && neighbor != c && std::find(adjacentPointsB.begin(), adjacentPointsB.end(), neighbor) == adjacentPointsB.end()) // Exclude points b and c
+            std::vector<int> adjacentPointsB = pointsAdjacentsIdx[idxB]; // Get the adjacent points of point B
+            if (AneighborIdx != idxB
+                && AneighborIdx != idxC
+                && std::find(adjacentPointsB.begin(), adjacentPointsB.end(), AneighborIdx) != adjacentPointsB.end()) // Exclude points b and c
             {
-                adjacentPointsAB.push_back(neighbor);
+                adjacentPointsAB.push_back(AneighborIdx);
             }
         }
 
-        std::vector<Point> adjacentPointsBC;
-        for (const auto& neighbor : pointsAdjacents[idxB])
+        std::vector<int> adjacentPointsBC = {};
+        for (const auto& Bneighbor : pointsAdjacentsIdx[idxB])
         {
-            std::vector<Point> adjacentPointsC = pointsAdjacents[idxC];                                                                         // Get the adjacent points of point C
-            if (neighbor != c && neighbor != a && std::find(adjacentPointsC.begin(), adjacentPointsC.end(), neighbor) == adjacentPointsC.end()) // Exclude points c and a
+            std::vector<int> adjacentPointsC = pointsAdjacentsIdx[idxC]; // Get the adjacent points of point C
+            if (Bneighbor != idxC
+                && Bneighbor != idxA
+                && std::find(adjacentPointsC.begin(), adjacentPointsC.end(), Bneighbor) != adjacentPointsC.end()) // Exclude points c and a
             {
-                adjacentPointsBC.push_back(neighbor);
+                adjacentPointsBC.push_back(Bneighbor);
             }
         }
 
-        std::vector<Point> adjacentPointsCA;
-        for (const auto& neighbor : pointsAdjacents[idxC])
+        std::vector<int> adjacentPointsCA = {};
+        for (const auto& Cneighbor : pointsAdjacentsIdx[idxC])
         {
-            std::vector<Point> adjacentPointsA = pointsAdjacents[idxA];                                                                         // Get the adjacent points of point A
-            if (neighbor != a && neighbor != b && std::find(adjacentPointsA.begin(), adjacentPointsA.end(), neighbor) == adjacentPointsA.end()) // Exclude points a and b
+            std::vector<int> adjacentPointsA = pointsAdjacentsIdx[idxA]; // Get the adjacent points of point A
+            if (Cneighbor != idxA
+                && Cneighbor != idxB
+                && std::find(adjacentPointsA.begin(), adjacentPointsA.end(), Cneighbor) != adjacentPointsA.end()) // Exclude points a and b
             {
-                adjacentPointsCA.push_back(neighbor);
+                adjacentPointsCA.push_back(Cneighbor);
             }
         }
 
@@ -425,31 +398,41 @@ void Graphe::flipDelaunayTriangles()
 
         start2 = std::chrono::high_resolution_clock::now();
 
+        if (adjacentPointsAB.size() == 0 || adjacentPointsBC.size() == 0 || adjacentPointsCA.size() == 0)
+        {
+            continue; // Skip this triangle if any point is not found
+        }
+
+        // std::cout << "Idx of adjacent points AB: " << adjacentPointsAB;
+        // std::cout << " Idx of adjacent points BC: " << adjacentPointsBC;
+        // std::cout << " Idx of adjacent points CA: " << adjacentPointsCA << "\n";
+
         // Check if the circumcircle contains any of the adjacent points
-        for (const auto& neighbor : adjacentPointsAB)
-        {
-            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
-            {
-                std::swap(triangle[0], triangle[1]); // Swap points A and B
-                nbrFlips++;                          // Increment the number of flips performed
-            }
-        }
 
-        for (const auto& neighbor : adjacentPointsBC)
-        {
-            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
+        auto fct_flip = [&](const std::vector<int>& adjList) -> void {
+            for (auto& neighborIdx : adjList)
             {
-                nbrFlips++; // Increment the number of flips performed
-            }
-        }
+                if (distance(pointList[neighborIdx], circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
+                {
+                    for (int j = 0; j < idxTriangles.size(); ++j)
+                    {
+                        if (std::find(idxTriangles[j].begin(), idxTriangles[j].end(), neighborIdx) != idxTriangles[j].end()
+                            && std::find(idxTriangles[j].begin(), idxTriangles[j].end(), idxA) != idxTriangles[j].end()
+                            && std::find(idxTriangles[j].begin(), idxTriangles[j].end(), idxB) != idxTriangles[j].end())
+                        {
+                            idxTriangles[i] = {idxC, neighborIdx, idxA}; // Swap the neighbor with point A in the current triangle
+                            idxTriangles[j] = {idxC, neighborIdx, idxB}; // Swap the neighbor with point B in the adjacent triangle
 
-        for (const auto& neighbor : adjacentPointsCA)
-        {
-            if (distance(neighbor, circle.first) < circle.second) // Check if the neighbor is inside the circumcircle
-            {
-                nbrFlips++; // Increment the number of flips performed
+                            nbrFlips++; // Increment the number of flips performed
+                        }
+                    }
+                }
             }
-        }
+        };
+
+        fct_flip(adjacentPointsAB); // Flip triangles for adjacent points AB
+        fct_flip(adjacentPointsBC); // Flip triangles for adjacent points BC
+        fct_flip(adjacentPointsCA); // Flip triangles for adjacent points CA
 
         end2 = std::chrono::high_resolution_clock::now();
         timeFlip += std::chrono::duration<double>(end2 - start2).count();
@@ -464,4 +447,31 @@ void Graphe::flipDelaunayTriangles()
     std::cout << "Time taken to flip triangles: " << timeFlip << " seconds.\n";
 
     std::cout << "Number of flips performed: " << nbrFlips << "\n";
+}
+
+void Graphe::doDelaunayFlipVersion()
+{
+    flipDelaunayTriangles(); // Perform Delaunay triangulation and flip triangles
+
+    set_triangle_v2(); // Set the triangles in the graph
+
+    // Calculate the circumcenter of each triangle and add this center for Voronoil cellule points
+
+    // std::cout << "Calcul for Voronoil : " << "\n";
+
+    nearCellulePoints.clear();                  // Clear the nearCellulePoints vector to prepare for new data
+    nearCellulePointsList.clear();              // Clear the nearCellulePointsList vector to prepare for new data
+    celluleBorder.clear();                      // Clear the celluleBorder vector to prepare for new data
+    nearCellulePoints.resize(pointList.size()); // Resize the nearCellulePoints vector to match the number of points in the graph
+    kNearestPoints.clear();                     // Clear the kNearestPoints vector to prepare for new data
+
+    calculateCenterFromDelaunayTriangles(idxTriangles); // Calculate the centers of the circumcircles of the triangles and store them in nearCellulePoints
+
+    // Determine if an original point is a border point
+
+    // idxPointBorder.clear(); // Clear the idxPointBorder vector to prepare for new data
+    // if (!hasDetectedBorder)
+    findBorderPoints(); // Find the border points in the graph
+
+    triesNearCellulePoints();
 }

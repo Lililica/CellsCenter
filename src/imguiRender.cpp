@@ -20,6 +20,19 @@ void Render::render2D()
         camera.reset_CameraOrigin();              // Reset the camera origin to (0, 0)
     }
 
+    ImGui::Text("Current centralisation mode : %s", trueDelaunay ? "True Delaunay" : "Flip Delaunay");
+
+    if (ImGui::Button("True Delaunay Centralisation"))
+    {
+        trueDelaunay = true;  // Toggle the true Delaunay centralisation
+        flipDelaunay = false; // Set the graph to use Welzl's algorithm for true Delaunay centralisation
+    }
+    if (ImGui::Button("Flip Delaunay Centralisation"))
+    {
+        trueDelaunay = false; // Toggle the flip Delaunay flag
+        flipDelaunay = true;  // Set the graph to use Welzl's algorithm for flip Delaunay
+    }
+
     if (ImGui::Button("Apply Centralisation"))
     {
         itrCentralisation += 1; // Set the counter to 1 for centralisation
@@ -123,7 +136,7 @@ void Render::render2D()
     ImGui::Begin("Graph Parameters");
     ImGui::Text("Number of centralisations applied: %d", graphe.nbrCentralisation);
     ImGui::Text("Number of points in the graph: %zu", graphe.pointList.size());
-    ImGui::Text("Number of triangles: %zu", graphe.trianglesPoints.size());
+    ImGui::Text("Number of triangles: %zu", graphe.idxTriangles.size());
     if (ImGui::Button("Show Triangles"))
     {
         drawTriangles = !drawTriangles; // Toggle the drawing of triangles

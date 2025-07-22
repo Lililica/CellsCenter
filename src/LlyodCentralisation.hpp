@@ -33,7 +33,7 @@ struct Graphe {
 
     std::vector<Point> pointList; // Exemple: [ (x0, y0), (x1, y1), ...]
 
-    std::vector<std::vector<Point>>                pointsAdjacents; // List of adjacent points for each point in pointList
+    std::vector<std::vector<int>>                  pointsAdjacentsIdx; // List of adjacent points for each point in pointList
     std::vector<std::vector<Point>>                nearCellulePoints;
     std::vector<std::vector<std::array<Point, 2>>> nearCellulePointsTriees; // List of segments formed by the near cell points
 
@@ -43,7 +43,6 @@ struct Graphe {
     std::vector<int> idxPointBorder;            // Indices of the points that are considered border points
     bool             hasDetectedBorder = false; // Flag to indicate if border points have been detected
 
-    std::vector<Triangle>           trianglesPoints; // List of triangles formed by the near cell points
     std::vector<std::array<int, 3>> idxTriangles;    // List of indices of points in triangles
     std::vector<Circle>             triangleCircles; // List of circles formed by the near cell points
     int                             nbrFlips = 0;    // Number of flips performed during the Delaunay triangulation
@@ -85,46 +84,143 @@ struct Graphe {
 
     void set_triangles(const std::vector<dt::Triangle<double>>& triangles)
     {
-        trianglesPoints.clear();
-        pointsAdjacents.clear();
-        pointsAdjacents.resize(pointList.size()); // Resize the adjacency list to match the number of points
+        idxTriangles.clear();
+        pointsAdjacentsIdx.clear();
+        pointsAdjacentsIdx.resize(pointList.size()); // Resize the adjacency list to match the number of points
+        triangleCircles.clear();                     // Clear the list of triangle circles before setting new triangles
+        triangleCircles.reserve(triangles.size());   // Reserve space for the triangle circles to avoid
         for (const auto& triangle : triangles)
         {
-            trianglesPoints.emplace_back(Triangle{Point(triangle.a->x, triangle.a->y), Point(triangle.b->x, triangle.b->y), Point(triangle.c->x, triangle.c->y)});
-            int idxA = getIndexFromPoint(trianglesPoints.back()[0]);
-            int idxB = getIndexFromPoint(trianglesPoints.back()[1]);
-            int idxC = getIndexFromPoint(trianglesPoints.back()[2]);
+            Point p1   = {triangle.a->x, triangle.a->y}; // Get the first point of the triangle
+            Point p2   = {triangle.b->x, triangle.b->y}; // Get the second point of the triangle
+            Point p3   = {triangle.c->x, triangle.c->y}; // Get the third point of the triangle
+            int   idxA = getIndexFromPoint(p1);
+            int   idxB = getIndexFromPoint(p2);
+            int   idxC = getIndexFromPoint(p3);
+            idxTriangles.emplace_back(std::array<int, 3>{idxA, idxB, idxC}); // Add the indices of the triangle points
+
+            if (idxA == -1 || idxB == -1 || idxC == -1)
+            {
+                triangleCircles.emplace_back(Circle{});
+                std::cerr << "Error: One of the triangle points is not found in the graph." << '\n';
+                continue; // Skip this triangle if any point is not found
+            }
+
+            if (std::find(pointsAdjacentsIdx[idxA].begin(), pointsAdjacentsIdx[idxA].end(), idxB) == pointsAdjacentsIdx[idxA].end())
+                pointsAdjacentsIdx[idxA].push_back(idxB);
+            if (std::find(pointsAdjacentsIdx[idxA].begin(), pointsAdjacentsIdx[idxA].end(), idxC) == pointsAdjacentsIdx[idxA].end())
+                pointsAdjacentsIdx[idxA].push_back(idxC);
+            if (std::find(pointsAdjacentsIdx[idxB].begin(), pointsAdjacentsIdx[idxB].end(), idxA) == pointsAdjacentsIdx[idxB].end())
+                pointsAdjacentsIdx[idxB].push_back(idxA);
+            if (std::find(pointsAdjacentsIdx[idxB].begin(), pointsAdjacentsIdx[idxB].end(), idxC) == pointsAdjacentsIdx[idxB].end())
+                pointsAdjacentsIdx[idxB].push_back(idxC);
+            if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxA) == pointsAdjacentsIdx[idxC].end())
+                pointsAdjacentsIdx[idxC].push_back(idxA);
+            if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxB) == pointsAdjacentsIdx[idxC].end())
+                pointsAdjacentsIdx[idxC].push_back(idxB);
+
+            // Get the circumcircle of the current triangle
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
+                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
+                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
+            {
+                triangleCircles.emplace_back(Circle{});
+                continue; // Skip this triangle if any point is a border point
+            }
+
+            Circle currentCircle;
+
+            std::array<std::array<float, 3>, 3> matForX{{{1.f, (p1.second), static_cast<float>(((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.))},   // L1
+                                                         {1.f, (p2.second), static_cast<float>(((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.))},   // L2
+                                                         {1.f, (p3.second), static_cast<float>(((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.))}}}; // L3
+
+            auto x = static_cast<float>(-determinant3x3(matForX));
+
+            std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(p1.first), static_cast<float>((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.)}, {1.f, static_cast<float>(p2.first), static_cast<float>((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.)}, {1.f, static_cast<float>(p3.first), static_cast<float>((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.)}}};
+
+            auto y = static_cast<float>(determinant3x3(matForY));
+
+            std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(p1.first), static_cast<float>(p1.second)}, {1.f, static_cast<float>(p2.first), static_cast<float>(p2.second)}, {1.f, static_cast<float>(p3.first), static_cast<float>(p3.second)}}};
+
+            auto w = static_cast<float>(determinant3x3(matForW));
+
+            Point center(x / w, y / w); // Calculate the center of the circumcircle
+
+            currentCircle = Circle(center, std::sqrt(std::pow(p1.first - center.first, 2) + std::pow(p1.second - center.second, 2))); // Calculate the radius of the circumcircle
+            triangleCircles.emplace_back(currentCircle);                                                                              // Add the circle to the list of triangle circles
+        }
+    }
+
+    void set_triangle_v2()
+    {
+        pointsAdjacentsIdx.clear();
+        pointsAdjacentsIdx.resize(pointList.size());  // Resize the adjacency list to match the number of points
+        triangleCircles.clear();                      // Clear the list of triangle circles before setting new triangles
+        triangleCircles.reserve(idxTriangles.size()); // Reserve space for the triangle circles to avoid
+        for (const auto& triangle : idxTriangles)
+        {
+            int idxA = (triangle[0]);
+            int idxB = (triangle[1]);
+            int idxC = (triangle[2]);
             if (idxA == -1 || idxB == -1 || idxC == -1)
             {
                 std::cerr << "Error: One of the triangle points is not found in the graph." << '\n';
                 continue; // Skip this triangle if any point is not found
             }
-            idxTriangles.emplace_back(std::array<int, 3>{idxA, idxB, idxC}); // Add the indices of the triangle points
 
-            if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxA].end())
-                pointsAdjacents[idxA].push_back(trianglesPoints.back()[1]);
-            if (std::find(pointsAdjacents[idxA].begin(), pointsAdjacents[idxA].end(), trianglesPoints.back()[2]) == pointsAdjacents[idxA].end())
-                pointsAdjacents[idxA].push_back(trianglesPoints.back()[2]);
-            if (std::find(pointsAdjacents[idxB].begin(), pointsAdjacents[idxB].end(), trianglesPoints.back()[0]) == pointsAdjacents[idxB].end())
-                pointsAdjacents[idxB].push_back(trianglesPoints.back()[0]);
-            if (std::find(pointsAdjacents[idxB].begin(), pointsAdjacents[idxB].end(), trianglesPoints.back()[2]) == pointsAdjacents[idxB].end())
-                pointsAdjacents[idxB].push_back(trianglesPoints.back()[2]);
-            if (std::find(pointsAdjacents[idxC].begin(), pointsAdjacents[idxC].end(), trianglesPoints.back()[0]) == pointsAdjacents[idxC].end())
-                pointsAdjacents[idxC].push_back(trianglesPoints.back()[0]);
-            if (std::find(pointsAdjacents[idxC].begin(), pointsAdjacents[idxC].end(), trianglesPoints.back()[1]) == pointsAdjacents[idxC].end())
-                pointsAdjacents[idxC].push_back(trianglesPoints.back()[1]);
+            if (std::find(pointsAdjacentsIdx[idxA].begin(), pointsAdjacentsIdx[idxA].end(), idxB) == pointsAdjacentsIdx[idxA].end())
+                pointsAdjacentsIdx[idxA].push_back(idxB);
+            if (std::find(pointsAdjacentsIdx[idxA].begin(), pointsAdjacentsIdx[idxA].end(), idxC) == pointsAdjacentsIdx[idxA].end())
+                pointsAdjacentsIdx[idxA].push_back(idxC);
+            if (std::find(pointsAdjacentsIdx[idxB].begin(), pointsAdjacentsIdx[idxB].end(), idxA) == pointsAdjacentsIdx[idxB].end())
+                pointsAdjacentsIdx[idxB].push_back(idxA);
+            if (std::find(pointsAdjacentsIdx[idxB].begin(), pointsAdjacentsIdx[idxB].end(), idxC) == pointsAdjacentsIdx[idxB].end())
+                pointsAdjacentsIdx[idxB].push_back(idxC);
+            if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxA) == pointsAdjacentsIdx[idxC].end())
+                pointsAdjacentsIdx[idxC].push_back(idxA);
+            if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxB) == pointsAdjacentsIdx[idxC].end())
+                pointsAdjacentsIdx[idxC].push_back(idxB);
 
-            std::vector<Point> currentTriangle = {trianglesPoints.back()[0], trianglesPoints.back()[1], trianglesPoints.back()[2]};
-            std::vector<Point> boundaryPoints  = {}; // Get the boundary points for the current triangle
-            Circle             currentCircle   = welzl(currentTriangle, boundaryPoints);
-            triangleCircles.emplace_back(currentCircle); // Add the circle to the list of triangle circles
+            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
+                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
+                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
+            {
+                triangleCircles.emplace_back(Circle{});
+                continue; // Skip this triangle if any point is a border point
+            }
+            // Get the circumcircle of the current triangle
+            Point p1 = pointList[idxA];
+            Point p2 = pointList[idxB];
+            Point p3 = pointList[idxC];
+
+            Circle currentCircle;
+
+            std::array<std::array<float, 3>, 3> matForX{{{1.f, (p1.second), static_cast<float>(((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.))},   // L1
+                                                         {1.f, (p2.second), static_cast<float>(((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.))},   // L2
+                                                         {1.f, (p3.second), static_cast<float>(((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.))}}}; // L3
+
+            auto x = static_cast<float>(-determinant3x3(matForX));
+
+            std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(p1.first), static_cast<float>((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.)}, {1.f, static_cast<float>(p2.first), static_cast<float>((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.)}, {1.f, static_cast<float>(p3.first), static_cast<float>((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.)}}};
+
+            auto y = static_cast<float>(determinant3x3(matForY));
+
+            std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(p1.first), static_cast<float>(p1.second)}, {1.f, static_cast<float>(p2.first), static_cast<float>(p2.second)}, {1.f, static_cast<float>(p3.first), static_cast<float>(p3.second)}}};
+
+            auto w = static_cast<float>(determinant3x3(matForW));
+
+            Point center(x / w, y / w); // Calculate the center of the circumcircle
+
+            currentCircle = Circle(center, std::sqrt(std::pow(p1.first - center.first, 2) + std::pow(p1.second - center.second, 2))); // Calculate the radius of the circumcircle
+            triangleCircles.emplace_back(currentCircle);                                                                              // Add the circle to the list of triangle circles
         }
     }
 
     void doDelaunayAndCalculateCenters();
+    void doDelaunayFlipVersion();
     void flipDelaunayTriangles();
 
-    void calculateCenterFromDelaunayTriangles(const std::vector<Triangle>& triangles);
+    void calculateCenterFromDelaunayTriangles(const std::vector<std::array<int, 3>>& triangles);
 
     void findBorderPoints();
     bool hasOtherTriangleForSegment(const std::vector<Triangle>& trianglesPoints, const Point& p1, const Point& p2, const Point& excluded);

@@ -23,6 +23,9 @@ public:
     bool drawCircles       = false; // Flag to control whether to draw circles in the render
     bool drawOrientedBox   = false; // Flag to control whether to draw the oriented bounding box
 
+    bool trueDelaunay = true;
+    bool flipDelaunay = false;
+
     Render()
         : io(ImGui::GetIO()) {};
 
