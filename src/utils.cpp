@@ -11,37 +11,39 @@
 #include "object/sphere.hpp"
 #include "shader/shader.hpp"
 
-void button_action(GLFWwindow* window, TrackballCamera* trackball)
+void button_action(GLFWwindow* window, TrackballCamera* trackball, double& deltaTime)
 {
+    float speed = .1f; // Speed of the camera movement
+
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        trackball->rotateLeft(2);
+        trackball->rotateLeft(200 * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        trackball->rotateLeft(-2);
+        trackball->rotateLeft(-200 * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        trackball->rotateUp(-2);
+        trackball->rotateUp(-200 * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        trackball->rotateUp(2);
+        trackball->rotateUp(200 * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        trackball->moveFront(-0.3);
+        trackball->moveFront(-speed * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        trackball->moveFront(0.3);
+        trackball->moveFront(speed * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        trackball->moveLeft(0.5);
+        trackball->moveLeft(speed * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        trackball->moveLeft(-0.5);
+        trackball->moveLeft(-speed * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        trackball->moveUp(0.5);
+        trackball->moveUp(speed * deltaTime * trackball->getDistance());
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        trackball->moveUp(-0.5);
+        trackball->moveUp(-speed * deltaTime * trackball->getDistance());
 }
 
 void draw_ball(TrackballCamera* trackball, const GLobject& obj, const Program& program, GLFWwindow* window)

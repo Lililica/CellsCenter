@@ -119,14 +119,14 @@ struct Graphe {
             if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxB) == pointsAdjacentsIdx[idxC].end())
                 pointsAdjacentsIdx[idxC].push_back(idxB);
 
-            // Get the circumcircle of the current triangle
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
-                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
-                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
-            {
-                triangleCircles.emplace_back(Circle{});
-                continue; // Skip this triangle if any point is a border point
-            }
+            // // Get the circumcircle of the current triangle
+            // if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
+            //     || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
+            //     || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
+            // {
+            //     triangleCircles.emplace_back(Circle{});
+            //     continue; // Skip this triangle if any point is a border point
+            // }
 
             Circle currentCircle;
 
@@ -181,13 +181,13 @@ struct Graphe {
             if (std::find(pointsAdjacentsIdx[idxC].begin(), pointsAdjacentsIdx[idxC].end(), idxB) == pointsAdjacentsIdx[idxC].end())
                 pointsAdjacentsIdx[idxC].push_back(idxB);
 
-            if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
-                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
-                || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
-            {
-                triangleCircles.emplace_back(Circle{});
-                continue; // Skip this triangle if any point is a border point
-            }
+            // if (std::find(idxPointBorder.begin(), idxPointBorder.end(), idxA) != idxPointBorder.end()
+            //     || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxB) != idxPointBorder.end()
+            //     || std::find(idxPointBorder.begin(), idxPointBorder.end(), idxC) != idxPointBorder.end())
+            // {
+            //     triangleCircles.emplace_back(Circle{});
+            //     continue; // Skip this triangle if any point is a border point
+            // }
             // Get the circumcircle of the current triangle
             Point p1 = pointList[idxA];
             Point p2 = pointList[idxB];
@@ -217,8 +217,8 @@ struct Graphe {
     }
 
     void doDelaunayAndCalculateCenters();
-    void doDelaunayFlipVersion();
-    void flipDelaunayTriangles();
+    void doDelaunayFlipVersion(int& nbrFlips);
+    int  flipDelaunayTriangles();
 
     void calculateCenterFromDelaunayTriangles(const std::vector<std::array<int, 3>>& triangles);
 

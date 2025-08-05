@@ -98,7 +98,7 @@ struct GLobject {
 
 using Point = std::pair<float, float>; // Représente un point (x, y)
 
-void button_action(GLFWwindow* window, TrackballCamera* trackball);
+void button_action(GLFWwindow* window, TrackballCamera* trackball, double& deltaTime);
 
 void draw_ball(TrackballCamera* trackball, const GLobject& sphere, const Program& program, GLFWwindow* window);
 

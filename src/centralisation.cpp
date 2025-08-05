@@ -1,5 +1,6 @@
 #include <complex.h>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -298,18 +299,7 @@ void Graphe::doDelaunayAndCalculateCenters()
     const auto                          end  = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> diff = end - start;
 
-    // std::cout << triangles.size() << " triangles generated in " << diff.count()
-    //           << "s\n";
-    std::vector<dt::Edge<double>> edges = triangulation.getEdges();
-
-    // std::cout
-    //     << "--------------------------------------------------------------\n";
-
     set_triangles(triangles); // Set the triangles in the graph
-
-    // Calculate the circumcenter of each triangle and add this center for Voronoil cellule points
-
-    // std::cout << "Calcul for Voronoil : " << "\n";
 
     nearCellulePoints.clear();                  // Clear the nearCellulePoints vector to prepare for new data
     nearCellulePointsList.clear();              // Clear the nearCellulePointsList vector to prepare for new data
@@ -328,7 +318,7 @@ void Graphe::doDelaunayAndCalculateCenters()
     triesNearCellulePoints();
 }
 
-void Graphe::flipDelaunayTriangles()
+int Graphe::flipDelaunayTriangles()
 {
     const auto start = std::chrono::high_resolution_clock::now();
 
@@ -337,6 +327,7 @@ void Graphe::flipDelaunayTriangles()
     double timeFlip     = 0.0; // Initialize timeFlip to 0
 
     nbrFlips = 0; // Reset the number of flips performed during the Delaunay triangulation
+
     for (int i = 0; i < idxTriangles.size(); ++i)
     {
         auto start2 = std::chrono::high_resolution_clock::now();
@@ -423,6 +414,30 @@ void Graphe::flipDelaunayTriangles()
                             idxTriangles[i] = {idxC, neighborIdx, idxA}; // Swap the neighbor with point A in the current triangle
                             idxTriangles[j] = {idxC, neighborIdx, idxB}; // Swap the neighbor with point B in the adjacent triangle
 
+                            auto computeCircumcircle = [&](const std::array<int, 3>& triangle) -> Circle {
+                                Point p1 = pointList[triangle[0]];
+                                Point p2 = pointList[triangle[1]];
+                                Point p3 = pointList[triangle[2]];
+
+                                std::array<std::array<float, 3>, 3> matForX{{{1.f, p1.second, static_cast<float>((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.)}, {1.f, p2.second, static_cast<float>((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.)}, {1.f, p3.second, static_cast<float>((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.)}}};
+                                auto                                x = static_cast<float>(-determinant3x3(matForX));
+
+                                std::array<std::array<float, 3>, 3> matForY{{{1.f, static_cast<float>(p1.first), static_cast<float>((std::pow(p1.second, 2) + std::pow(p1.first, 2)) / 2.)}, {1.f, static_cast<float>(p2.first), static_cast<float>((std::pow(p2.second, 2) + std::pow(p2.first, 2)) / 2.)}, {1.f, static_cast<float>(p3.first), static_cast<float>((std::pow(p3.second, 2) + std::pow(p3.first, 2)) / 2.)}}};
+                                auto                                y = static_cast<float>(determinant3x3(matForY));
+
+                                std::array<std::array<float, 3>, 3> matForW{{{1.f, static_cast<float>(p1.first), static_cast<float>(p1.second)}, {1.f, static_cast<float>(p2.first), static_cast<float>(p2.second)}, {1.f, static_cast<float>(p3.first), static_cast<float>(p3.second)}}};
+                                auto                                w = static_cast<float>(determinant3x3(matForW));
+
+                                Point center(x / w, y / w);
+                                float radius = std::sqrt(std::pow(p1.first - center.first, 2) + std::pow(p1.second - center.second, 2));
+                                return Circle(center, radius);
+                            };
+
+                            std::array<int, 3> triangleI = idxTriangles[i];
+                            std::array<int, 3> triangleJ = idxTriangles[j];
+                            triangleCircles[i]           = computeCircumcircle(triangleI);
+                            triangleCircles[j]           = computeCircumcircle(triangleJ); // Recompute the circumcircle for the new triangles
+
                             nbrFlips++; // Increment the number of flips performed
                         }
                     }
@@ -447,11 +462,13 @@ void Graphe::flipDelaunayTriangles()
     std::cout << "Time taken to flip triangles: " << timeFlip << " seconds.\n";
 
     std::cout << "Number of flips performed: " << nbrFlips << "\n";
+
+    return nbrFlips; // Return the number of flips performed during the Delaunay triangulation
 }
 
-void Graphe::doDelaunayFlipVersion()
+void Graphe::doDelaunayFlipVersion(int& nbrFlips)
 {
-    flipDelaunayTriangles(); // Perform Delaunay triangulation and flip triangles
+    nbrFlips = flipDelaunayTriangles(); // Perform Delaunay triangulation and flip triangles
 
     set_triangle_v2(); // Set the triangles in the graph
 

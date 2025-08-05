@@ -61,4 +61,6 @@ public:
         m_fAngleX   = pos.y;
         m_fAngleY   = pos.z;
     };
+
+    float getDistance() const { return m_fDistance; }
 };

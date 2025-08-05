@@ -240,10 +240,19 @@ int main()
 
     std::vector<Point> examplePoints;
 
+    int nbrFlips = 1; // Initialize the number of flips
+
+    double previousTime = 0.; // Initialize the previous time for frame rate control
+
     // RENDERING SECTION ________________________________________________________________________________________________________________________________
 
     while (!glfwWindowShouldClose(window))
     {
+        // Get the delta time for frame rate control
+        double        newTime   = glfwGetTime();
+        static double deltaTime = newTime - previousTime;
+        previousTime            = newTime;
+
         /* Render here */
         glClearColor(0.9f, .9f, .9f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -257,7 +266,7 @@ int main()
         glViewport(0, 0, width, height);
 #endif
 
-        button_action(window, render.getCamera()); // Handle render.getCamera() movement based on key presses
+        button_action(window, render.getCamera(), deltaTime); // Handle render.getCamera() movement based on key presses
 
         // get the mouse position
         if (render.mousePoint)
@@ -374,7 +383,7 @@ int main()
             render.getGraph()->allCircles.clear();                              // Clear the list of circles
             render.getGraph()->energies.clear();                                // Clear the list of energies
             std::default_random_engine             eng(std::random_device{}());
-            std::uniform_real_distribution<double> rayon(0, render.getGraph()->radius - 1.); // Random radius from 0 to the graph's radius
+            std::uniform_real_distribution<double> rayon(0, render.getGraph()->radius - 5.); // Random radius from 0 to the graph's radius - 1
             std::uniform_real_distribution<double> angle(0, std::numbers::pi * 2);           // 2 * pi
 
             for (int i = 0; i < render.getGraph()->nbrPoints; ++i)
@@ -386,9 +395,11 @@ int main()
             }
 
             // add border points to the graph
-            for (int i = 0; i < 50; ++i)
+            int nbrBorderPoints = 20; // Number of border points
+
+            for (int i = 0; i < nbrBorderPoints; ++i)
             {
-                float angle = static_cast<float>(i) * (2.f * std::numbers::pi / 50.f); // Calculate the angle for each point
+                float angle = static_cast<float>(i) * (2.f * std::numbers::pi / static_cast<float>(nbrBorderPoints)); // Calculate the angle for each point
                 render.getGraph()->pointList.emplace_back(
                     render.getGraph()->radius * std::cos(angle), // x coordinate
                     render.getGraph()->radius * std::sin(angle)  // y coordinate
@@ -425,11 +436,17 @@ int main()
 
         if (render.get_itrCentralisation() > 0)
         {
-            render.getGraph()->centralisation(); // Centralize the points in the graph
             if (render.trueDelaunay)
+            {
+                render.getGraph()->centralisation();                // Centralize the points in the graph
                 render.getGraph()->doDelaunayAndCalculateCenters(); // Perform Delaunay triangulation and calculate centers
+            }
             else if (render.flipDelaunay)
-                render.getGraph()->doDelaunayFlipVersion(); // Flip the Delaunay triangles to ensure they are valid
+            {
+                if (nbrFlips == 0)
+                    render.getGraph()->centralisation();            // Centralize the points in the graph
+                render.getGraph()->doDelaunayFlipVersion(nbrFlips); // Perform Delaunay triangulation and flip triangles
+            }
 
             v.clear(); // Clear the vertex vector
             for (int i = 0; i < render.getGraph()->pointList.size(); ++i)
