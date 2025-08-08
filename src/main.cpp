@@ -90,7 +90,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
     window =
-        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "TP1", nullptr, nullptr);
+        glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CellsCenter", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
@@ -445,7 +445,7 @@ int main()
             {
                 if (nbrFlips == 0)
                     render.getGraph()->centralisation();            // Centralize the points in the graph
-                render.getGraph()->doDelaunayFlipVersion(nbrFlips); // Perform Delaunay triangulation and flip triangles
+                render.getGraph()->doDelaunayFlipVersion(nbrFlips); // Flip triangles
             }
 
             v.clear(); // Clear the vertex vector
