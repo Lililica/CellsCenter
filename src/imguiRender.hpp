@@ -4,7 +4,7 @@
 #include "LlyodCentralisation.hpp"
 #include "trackball/TrackBall.hpp"
 
-class Render {
+class App {
 private:
     ImGuiIO& io;
 
@@ -13,7 +13,9 @@ private:
     TrackballCamera camera{10.f, 0.f, 0.f}; // Initialize the camera with a distance of 10, angleX of 45 degrees, and angleY of 0 degrees
     int             itrCentralisation = 0;  // Counter for the number of centralisations applied
 
-public:
+    GLobject* triangleObject{};     // Object to hold the triangles
+    GLobject* triangleObjectVoro{}; // Object to hold the Voronoi triangles
+
     bool drawPoints        = true;  // Flag to control whether to draw balls in the render
     bool drawTriangles     = true;  // Flag to control whether to draw triangles in the render
     bool drawVertex        = true;  // Flag to control whether to draw vertices in the render
@@ -26,7 +28,15 @@ public:
     bool trueDelaunay = true;
     bool flipDelaunay = false;
 
-    Render()
+    float factorTriangle  = 0.15f; // Factor to scale the triangles
+    float factorTriangle2 = 0.07f; // Factor to scale the circumcenters
+
+    std::vector<Vertex> v;
+
+    // std::vector<glm::vec3> randomPositions;
+
+public:
+    App()
         : io(ImGui::GetIO()) {};
 
     int get_itrCentralisation() const
@@ -41,6 +51,9 @@ public:
             itrCentralisation--; // Decrease the centralisation counter
         }
     }
+
+    void update(GLFWwindow* window, Program& program);
+    void init();
 
     void render2D();
 
@@ -63,5 +76,20 @@ public:
     int getItrCentralisation() const
     {
         return itrCentralisation; // Provide a way to access the current centralisation iteration
+    }
+
+    std::vector<Vertex> getVertices() const
+    {
+        return v; // Provide a way to access the vertices
+    }
+
+    void setTriangleObject(GLobject* obj)
+    {
+        triangleObject = obj;
+    }
+
+    void setTriangleObjectVoro(GLobject* obj)
+    {
+        triangleObjectVoro = obj;
     }
 };

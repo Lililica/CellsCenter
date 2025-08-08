@@ -5,7 +5,7 @@
 #include <random>
 #include "utils.hpp"
 
-void Render::render2D()
+void App::render2D()
 {
     ImGui_ImplGlfw_NewFrame();
     ImGui_ImplOpenGL3_NewFrame();

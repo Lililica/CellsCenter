@@ -29,6 +29,9 @@ struct GLobject {
     GLuint _draw_mode;
     bool   _is_cloud;
 
+    GLobject()
+        : _vbo(0), _vao(0), _n_vertex(0), _draw_mode(GL_TRIANGLES), _is_cloud(false) {}
+
     GLobject(const std::vector<Vertex>& mesh, const GLuint draw_mode, const bool iscloud = false)
         : _n_vertex(mesh.size()), _draw_mode(draw_mode), _is_cloud(iscloud)
     {
@@ -65,6 +68,18 @@ struct GLobject {
     {
         glDeleteVertexArrays(1, &_vao);
         glDeleteBuffers(1, &_vbo);
+    }
+
+    void operator=(const GLobject& other)
+    {
+        if (this != &other)
+        {
+            _vbo       = other._vbo;
+            _vao       = other._vao;
+            _n_vertex  = other._n_vertex;
+            _draw_mode = other._draw_mode;
+            _is_cloud  = other._is_cloud;
+        }
     }
 
     bool

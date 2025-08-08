@@ -5,7 +5,7 @@
 This repository is a research project. It is a software tool designed to visualize and test different types of graph optimization using CVT energy.  
 It was created to optimize the positioning of various points while maintaining a Delaunay structure.
 
-![Exemple](./assets/img/Screenshot%202025-08-08%20114445.png)
+![Exemple](./assets/img/exemple.png)
 
 ## 1 - How to build
 
